@@ -1,0 +1,159 @@
+<template>
+    <div id="resident">
+        <MyHeader :title="'驻村工作队'"/>
+        <div class="box">
+            <div class="oneBox">
+                <div class="imgBox">
+                    <div><img src="http://www.mlxc365.com/images/sxccx/icon/geren6.png" /></div>
+                    <p>驻村工作队</p>
+                </div> 
+            </div>
+            <div class="listBox" v-if="list">
+                <div class="listone">
+                    <div class="firtlist">
+                        <div class="imgbox">✦</div>
+                        <p>帮扶单位名称</p>
+                        <p class="lasttext">{{list.name}}</p>
+                    </div>
+                    <div class="firtlist">
+                        <div class="imgbox">✦</div> 
+                        <p>帮扶单位类型</p>
+                        <p class="lasttext">{{list.help_type_name}}</p>
+                    </div>
+                    <div class="firtlist">
+                        <div class="imgbox">✦</div> 
+                        <p>录属关系</p>
+                        <p class="lasttext">{{list.organization_affiliation}}</p>
+                    </div>
+                    <div class="firtlist">
+                        <div class="imgbox">✦</div> 
+                        <p>联 系 人</p>
+                        <p class="lasttext">{{list.organization_name}}</p>
+                    </div>
+                    <div class="firtlist">
+                        <div class="imgbox">✦</div> 
+                        <p>联系电话</p>
+                        <p class="lasttext">{{list.organization_tel}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    import MyHeader from "../../components/public/MyHeader";
+    import { getResident } from "../../apis";
+    export default {
+        name: "resident",
+        data() {
+            return {
+                list:[]
+            }
+        },
+        methods: {
+            getResident(){
+                getResident({
+                    url:"/BaseOrganization/getOrganization",
+                    data:{}
+                }).then(msg => {
+                    if(~~msg.status === 200){
+                        this.list=msg.data.list[0];
+                    }else {
+                        //获取失败
+                        this.GToast({message:"获取失败"});
+                    }
+                })
+            },
+        },
+        components: {
+            MyHeader,
+        },
+        created() {
+            this.id=this.$route.query.id;
+            this.getResident()
+        },
+    }
+</script>
+
+<style scoped lang="stylus">
+#resident {
+    width 100%
+    min-height 100vh
+    box-sizing  border-box;
+    padding-top 2rem;
+    > img {
+        width:100%;
+    }
+    .oneBox{
+        width: 100%;
+        padding: 0.6rem 0.5rem 0 0.5rem;
+        box-sizing: border-box;
+        .imgBox{
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            align-lists center;
+            div{
+                width: 0.6rem;
+                height: 0.6rem;
+                overflow: hidden;
+                display: flex;
+                align-lists: center;
+                margin-right: 0.6rem;
+                img{
+                    width: 100%;
+                    height: 100%;
+                }
+            }
+            p{
+                color: #6CB127;
+                font-size: 0.6rem; 
+            }
+        }
+    }
+    .listBox{
+        width: 100%;
+        margin-top: 0.9rem;
+        display: flex;
+        flex-direction: row;
+        align-lists: center;
+        border-bottom: 1px solid #f5f5f5;
+        .listone{
+            width: 100%;
+            padding-left: 2rem;
+            padding-bottom: 0.6rem;
+            .firtlist{
+                width: 100%;
+                display: flex;
+                flex-direction: row;
+                align-lists: center;
+                position: relative;
+                margin-bottom: 0.6rem;
+                .imgbox{
+                    width: 0.6rem;
+                    height: 0.6rem;
+                    overflow: hidden;
+                    display: flex;
+                    align-lists: center;
+                    margin-right: 0.1rem;
+                    color: #6CB127;
+                }
+                p{
+                    font-size: 28rpx;
+                    color: #8A8A8A;
+                }
+                .lasttext{
+                    color: #6CB127;
+                    font-size: 0.5rem;
+                    position: absolute;
+                    right: 0.5rem;
+                }
+            }
+        }
+    }
+    .box{
+        border-top: 1px solid #e5e5e5;
+    }
+}
+</style>

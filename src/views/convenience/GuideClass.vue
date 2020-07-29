@@ -1,0 +1,61 @@
+<template>
+    <div id="GuideClass">
+        <MyHeader  :title="title"/>
+        <Lines />
+        <List :list="list"/>
+    </div>
+</template>
+
+<script>
+    import Lines from "../../components/public/Lines";
+    import MyHeader from "../../components/public/MyHeader";
+    import List from "../../components/convenience/GuideClass/List"
+    import {getGuideList} from "../../apis";
+    export default {
+        name: "GuideClass",
+        data() {
+            return {
+                title:"",
+                list:[]
+            }
+        },
+        methods: {
+            getGuideList(typeId){
+                getGuideList({
+                    url:"/flow/list",
+                    data:{
+                        del_lag:0,
+                        typeId
+                    }
+                }).then(msg => {
+                    if(~~msg.code === 200){
+                        msg = msg.data.list;
+                        this.list = msg
+                    }
+                })
+            }
+        },
+        components: {
+            Lines,
+            MyHeader,
+            List
+        },
+        created() {
+            //标题
+            this.title = window.sessionStorage.getItem("guideTitle");
+            //id
+            const guideTypeId = window.sessionStorage.getItem("guideTypeId")
+            this.getGuideList(guideTypeId)
+        },
+    }
+</script>
+
+<style scoped lang="stylus">
+#GuideClass {
+    width 100%
+    min-height 100vh
+    background-color: #f8f8f8
+    box-sizing border-box
+    padding-top func(44)
+}
+</style>

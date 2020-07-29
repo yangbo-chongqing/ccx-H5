@@ -1,0 +1,144 @@
+<template>
+    <div id="PersonMore">
+        <MyHeader :title="'更多人才'"/>
+        <!-- 人才列表 -->
+        <div class="attractions">
+            <div class="item" v-for="(item , index) in list" :key="index" @click="handleFunc(item)">
+                <img class="left" :src="item.showImg"/>
+                <div class="right">
+                    <div class="title single">
+                        <p>{{item.name}}</p>
+                        <p>{{item.type}}</p>
+                    </div>
+                    <div class="about multiLine">{{item.study}}</div>
+                    <div class="numberPeople">接待：{{item.count}}次</div>
+                </div>
+                <div class="btn" @click.stop="handlego">预约</div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    import MyHeader from "../../components/public/MyHeader";
+    import { Swipe, SwipeItem,Dialog } from 'vant';
+    export default {
+        name: "PersonMore",
+        data() {
+            return {
+                list:[
+                    {
+                        showImg:"http://www.mlxc365.com/images/sxccx/icon/intro_bg.png",
+                        name:"李丹",
+                        type:"学习坊",
+                        study:"中药材",
+                        count:2
+                    }
+                ],
+            }
+        },
+        methods: {
+            handleFunc(item){
+                this.$router.push({path:'/PersonDetails.html',query:{ id:item.news_id}});
+            },
+            handlego(item){
+                this.$router.push({path:'/Appointment.html',query:{ id:item.news_id}});
+            },
+        },
+        components: {
+            MyHeader,
+            Dialog
+        },
+        created() {
+        },
+    }
+</script>
+
+<style scoped lang="stylus">
+#PersonMore  {
+    width 100%
+    min-height 100vh;
+    padding-top 2rem;
+    > img {
+        width:100%;
+    }
+    .attractions {
+        margin-top: 0.4rem;
+        width: 100%;
+        min-height: 15rem;
+        background-color: #fff;
+        box-sizing: border-box;
+        .title {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            box-sizing: border-box;
+            img {
+                height: 1rem;
+                width: 60%;
+            }
+            div {
+                font-size: 0.5rem;
+                color: #aaa;
+            }
+            p:nth-child(2){
+                color: #6CB127;
+                margin-left: 0.4rem;
+            }
+        }
+        .item {
+            display: flex;
+            box-sizing: border-box;
+            position: relative;
+            .left {
+                width: 24%;
+                height: 3.6rem;
+                padding: 0.5rem;
+                border-radius: 50%;
+            }
+            .right {
+                padding: 0.5rem 0;
+                width: 55%;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                .title {
+                    font-size: 0.6rem;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    white-space: nowrap;
+                }
+                .about{
+                    font-size: 0.5rem;
+                    color: #444;
+                }
+                .numberPeople{
+                    font-size: 0.5rem;
+                    color: #8A8A8A;
+                    display: flex;
+                    div{
+                        color: #ff0000;
+                    }
+                }
+            }
+        }
+    }
+    .multiLine{
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+    }
+    .btn{
+        position: absolute;
+        right: 0.5rem;
+        top: 2rem;
+        width: 2rem;
+        height: 0.88rem;
+        background: #6CB127;
+        border-radius: 0.5rem;
+        color: #fff;
+        text-align: center;
+    }
+}
+</style>

@@ -1,0 +1,177 @@
+<template>
+    <div id="Talent">
+        <MyHeader :title="'人才库'"/>
+        <!-- 人才列表 -->
+        <div class="attractions">
+            <div class="item" v-for="(item , index) in list" :key="index" @click="handleFunc(item)">
+                <img class="left" :src="item.showImg"/>
+                <div class="right">
+                    <div class="title single">
+                        <p>{{item.able_name}}</p>
+                        <p>#{{item.label}}</p>
+                    </div>
+                    <div class="about multiLine">{{item.able_content}}</div>
+                    <div class="numberPeople">{{item.create_date | formatTime}}</div>
+                </div>
+            </div>
+        </div>
+        <i class="iconfont add" @click="add()">&#xe61c;</i>
+    </div>
+</template>
+
+<script>
+    import MyHeader from "../../components/public/MyHeader";
+    import { Dialog } from 'vant';
+    import {getCollege} from "@/apis";
+    export default {
+        name: "Talent",
+        data() {
+            return {
+                list:[],
+            }
+        },
+        methods: {
+            getCollege(){
+                getCollege({
+                    url:"/able/person/getList",
+                    data:{
+                        talent_type:2
+                    }
+                }).then(msg => {
+                    if(~~msg.code === 0 && ~~msg.status === 200){
+                        msg = msg.data.list;
+                        msg.forEach(item => {
+                            if(item.able_pic && item.able_pic !== "null"){
+                                item.showImg = item.able_pic.split(",")[0];
+                            }else {
+                                item.showImg = require("../../assets/img/noImg.png");
+                            }
+                        })
+                        this.list = msg;
+                    }else {
+                        //获取失败
+                        this.GToast({message:"获取新闻失败"});
+                    }
+                })
+            },
+            handleFunc(item){
+                this.$router.push({path:'/TalentDetails.html',query:{ id:item.able_id}});
+            },
+            add(){
+                this.$router.push({path:'/ApplyTalent.html'})
+            }
+        },
+        filters:{
+            formatTime(date){
+                date = new Date(date);
+                const year = date.getFullYear();
+                const month = date.getMonth() + 1;
+                const day = date.getDate() ;
+                return `${year}/${month}/${day}`;
+            }
+        },
+        components: {
+            MyHeader,
+            Dialog
+        },
+        created() {
+            this.getCollege()
+        },
+    }
+</script>
+
+<style scoped lang="stylus">
+#Talent  {
+    width 100%
+    min-height 100vh;
+    padding-top 2rem;
+    > img {
+        width:100%;
+    }
+    .attractions {
+        margin-top: 0.4rem;
+        width: 100%;
+        min-height: 15rem;
+        background-color: #fff;
+        box-sizing: border-box;
+        .title {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            box-sizing: border-box;
+            img {
+                height: 1rem;
+                width: 60%;
+            }
+            div {
+                font-size: 0.5rem;
+                color: #aaa;
+            }
+            p:nth-child(2){
+                color: #6CB127;
+                margin-left: 0.4rem;
+            }
+        }
+        .item {
+            display: flex;
+            box-sizing: border-box;
+            position: relative;
+            border-bottom: 1px solid #f5f5f5;
+            .left {
+                width: 31%;
+                height: 3.6rem;
+                padding: 0.5rem;
+            }
+            .right {
+                padding: 0.5rem 0;
+                width: 55%;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                .title {
+                    font-size: 0.6rem;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    white-space: nowrap;
+                }
+                .about{
+                    font-size: 0.5rem;
+                    color: #8A8A8A;
+                }
+                .numberPeople{
+                    font-size: 0.5rem;
+                    color: #8A8A8A;
+                    display: flex;
+                    div{
+                        color: #ff0000;
+                    }
+                }
+            }
+        }
+    }
+    .multiLine{
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+    }
+    .btn{
+        position: absolute;
+        right: 0.5rem;
+        top: 2rem;
+        width: 2rem;
+        height: 0.88rem;
+        background: #6CB127;
+        border-radius: 0.5rem;
+        color: #fff;
+        text-align: center;
+    }
+    .add{
+        font-size: 0.8rem;
+        color: #6CB127;
+        position: fixed;
+        right: 0.6rem;
+        top: 50%;
+    }
+}
+</style>

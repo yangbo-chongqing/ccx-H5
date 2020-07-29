@@ -1,0 +1,444 @@
+<template>
+    <div id="Index">
+        <MyHeader :showPopup="showPopup" :showArea="showArea"/>
+        <MySwipe :swipeList="swipeList"/>
+        <Tools :toolsList="toolsList"/>
+        <Lines />
+        <Options :optionFlag="optionFlag" :toggleFlag="toggleFlag"/>
+        <ul>
+            <li v-for="(item , index) in newsList" :key="index">
+                <NewsList v-if="item.showImg" :news="item"/>
+                <textList v-else :news="item"/>
+            </li>
+        </ul>
+        <Popup
+                v-model="show"
+                position="bottom"
+                :style="{ height: '55%' }"
+                class="Popup"
+        >
+            <div class="title">
+                所在区域
+            </div>
+            <!--显示地址-->
+            <div class="address">
+                <div :class="{active:addressLevel === 0}" @click="getAddress(0)" >{{province.areaName? province.areaName : "省"}}</div>
+                <div :class="{active:addressLevel === 1}" @click="getAddress(1)" >{{city.areaName ? city.areaName : "市"}}</div>
+                <div :class="{active:addressLevel === 2}" @click="getAddress(2)" >{{district.areaName ? district.areaName : "区/县"}}</div>
+                <div :class="{active:addressLevel === 3}" @click="getAddress(3)" >{{street.areaName ?  street.areaName : "街道/镇"}}</div>
+                <div :class="{active:addressLevel === 4}" @click="getAddress(4)" >{{community.areaName ? community.areaName : "社区/村"}}</div>
+            </div>
+            <Picker :columns="columns" @change="onChange" value-key="areaName" :default-index="0" ref="Picker"/>
+            <div class="button">
+                <button @click="cannel">取消</button>
+                <button @click="confirm">确定</button>
+            </div>
+        </Popup>
+        <MyFooter :pageIndex="0"/>
+        <Popup v-model="getNewsStatus" class="removescrollbar">
+            <Loading type="spinner"/>
+        </Popup>
+
+    </div>
+</template>
+
+<script>
+    import MySwipe from "../components/Index/MySwipe";
+    import Tools from "../components/Index/Tools";
+    import MyHeader from "../components/Index/MyHeader";
+    import NewsList from "../components/public/NewsList";
+    import Lines from "../components/public/Lines";
+    import MyFooter from "../components/public/MyFooter";
+    import Options from "../components/Index/Options";
+    import imageList from "@/components/public/imageList";
+    import textList from "@/components/public/textList";
+    import { getSwiper , getNewsClass , getAddress} from "../apis";
+    import { Popup , Picker , Toast  ,Loading } from 'vant';
+    import {modifyArea , modifyShowArea} from "../store/actionTypes";
+    export default {
+        name: "Index",
+        data() {
+            return {
+                toolsList:[
+                    {
+                        title:"党建动态",
+                        img: baseImgUrl + "partydynamics.png",
+                        pageRouter:"/partyBuild.html"
+                    },
+                    {
+                        title:"党员学习",
+                        img: baseImgUrl + "elearning.png",
+                        pageRouter:"/member.html"
+                    },
+                    {
+                        title:"扶贫动态",
+                        img: baseImgUrl + "povertyalleviation.png",
+                        pageRouter:"/poverty.html"
+                    },
+                    {
+                        title:"政务公开",
+                        img: baseImgUrl + "affairspublic.png",
+                        pageRouter:"/affairsOpen.html"
+                    },
+                    {
+                        title:"平安家园",
+                        img: baseImgUrl + "safehome.png",
+                        pageRouter:"/Safe.html"
+                    },
+                    {
+                        title:"办事指南",
+                        img: baseImgUrl + "conveniencequery.png",
+                        pageRouter:"/Guide.html"
+                    },
+                    {
+                        title:"一键报警",
+                        img: baseImgUrl + "zwgk7.png",
+                        pageRouter:"/Police.html"
+                    },
+                    {
+                        title:"更多服务",
+                        img: baseImgUrl + "allservice.png",
+                        pageRouter:"/server.html"
+                    }
+                ],
+                swipeList:[],//轮播图列表
+                news_type: null, // 32 村务 19 党务 33 政务
+                optionFlag: 0,
+                newsList:null,
+                show: false, //展示
+                columns: [],
+                addressLevel:0,
+                province:{}, //省
+                city:{},//市
+                district:{}, //区,
+                street:{} ,//街道
+                community: {} ,//社区
+                showArea: "",
+                temp:{},//临时变量
+                getNewsStatus:false,//获取新闻是否成功的状态
+
+            }
+        },
+        components: {
+            MySwipe,
+            Tools,
+            MyHeader,
+            NewsList,
+            Lines,
+            MyFooter,
+            Options,
+            imageList,
+            textList,
+            Popup,
+            Picker,
+            Loading
+        },
+        created() {
+            this.getSwiper();
+            this.getIndexNewsClass();
+            this.showArea = this.$store.state.showArea;
+        },
+        methods:{
+            //获取首页轮播图
+            getSwiper(){
+                // 判断用户是否登录
+                const userInfo = this.$store.state.userInfo;
+                let deptId = userInfo === null ? 651 : userInfo.deptId;
+                getSwiper({
+                    url:"/information/getPlayListByNewsType",
+                    data:{
+                        deptId
+                    }
+                }).then( msg => {
+                    if(~~msg.code === 200){
+                        msg = msg.data;
+                        this.swipeList = msg;
+                    }else {
+                        //提示获取轮播图失败
+                        this.GToast({message:"获取轮播图失败"});
+                    }
+                })
+            },
+            //获取党/村/政务
+            getIndexNewsClass(news_type = 19){
+                //显示弹出层
+                this.getNewsStatus = true;
+                if(this.news_type){
+                    news_type = this.news_type;
+                }
+                const data = {
+                    pageSize:10,
+                    pageCurrent:1,
+                    news_type
+                }
+                getNewsClass({
+                    data,
+                    currentObject:this
+                }).then(msg => {
+                    //隐藏弹出层
+                    this.getNewsStatus = false;
+                    if(~~msg.code === 1 && ~~msg.status === 200){
+                        msg = msg.data.list;
+                        // 32 村务 19 党务 33 政务
+                        if(news_type === 32){
+                            msg.forEach(item => {
+                                if(item.contentPic && item.contentPic !== "null"){
+                                    item.showImg = item.contentPic.split(",")[0];
+                                }else {
+                                    item.showImg = require("../assets/img/noImg.png");
+                                }
+                                item.typeName = "村务";
+                            })
+                        }
+                        if(news_type === 33){
+                            msg.forEach(item => {
+                                if( item.contentPic && item.contentPic !== "null"){
+                                    item.showImg = item.contentPic.split(",")[0];
+                                }else{
+                                    item.showImg = require("../assets/img/noImg.png");
+                                }
+                                item.typeName = "政务";
+                            })
+                        }
+                        if(news_type === 19){
+                            msg.forEach(item => {
+                                if(item.contentPic && item.contentPic !== "null" ){
+                                    item.showImg = item.contentPic.split(",")[0];
+                                }else {
+                                    item.showImg = require("../assets/img/noImg.png");
+                                }
+                                item.typeName = "党务";
+                            })
+                        }
+                        this.newsList = msg;
+                    }else {
+                        //获取失败
+                        this.GToast({message:"获取新闻失败"});
+                    }
+                })
+            },
+            toggleFlag(flag){
+                switch (flag) {
+                    case 0:
+                        this.news_type = 19;
+                        break;
+                    case 1:
+                        this.news_type = 33;
+                        break;
+                    default :
+                        this.news_type = 32;
+                }
+                this.optionFlag = flag;
+                this.getIndexNewsClass();
+            },
+            //展示弹出层
+            showPopup(){
+                this.getAddress();
+                this.show = true;
+            },
+            //滑动展示
+            onChange(picker, value, index) {
+                const addressLevel = this.addressLevel;
+                switch (addressLevel) {
+                    case 0:
+                        this.province = value;
+                        break;
+                    case 1:
+                        this.city = value;
+                        break;
+                    case 2:
+                        this.district =value;
+                        break;
+                    case 3:
+                        this.street = value;
+                        break;
+                    case 4:
+                        this.community = value;
+                        break;
+                }
+                if(addressLevel === 0){
+                    this.province = value;
+                }
+
+            },
+            //根据区域等级获取区域列表
+            getAddress(addressLevel = 0){
+                //区域等级不同赋值不同
+                let dept_id = this.getDeptId(addressLevel);
+                this.removeData(addressLevel);
+                getAddress({
+                    url:"/system/sysDept/getByParentid",
+                    data:{
+                        dept_id
+                    }
+                }).then(msg => {
+                    if(~~msg.status === 200 && ~~msg.code === 0){
+                        msg = msg.data;
+                        this.columns = msg;
+                        if(msg.length > 0){
+                            switch (addressLevel) {
+                                case 0:
+                                    this.province = this.columns[0];
+                                    break;
+                                case 1:
+                                    this.city = this.columns[0];
+                                    break;
+                                case 2:
+                                    this.district = this.columns[0];
+                                    break;
+                                case 3:
+                                    this.street = this.columns[0];
+                                    break;
+                                case 4:
+                                    this.community = this.columns[0];
+                                    break;
+                            }
+                        }
+
+                    }
+                })
+            },
+            //获取上一级区域的id
+            getDeptId(flag){
+                this.addressLevel = flag;
+                let dept_id = null;
+                switch (flag) {
+                    case 0:
+                        dept_id = 1;
+                        break;
+                    case 1:
+                        dept_id = this.province.dept_id;
+                        break;
+                    case 2:
+                        dept_id = this.city.dept_id;
+                        break;
+                    case 3:
+                        dept_id = this.district.dept_id;
+                        break;
+                    case 4:
+                        dept_id = this.street.dept_id;
+                        break;
+                }
+                return dept_id;
+            },
+            //选择性清空数据
+            removeData(addressLevel){
+                switch (addressLevel) {
+                    case 0:
+                        this.province = this.city = this.district = this.street = this.community = {};
+                        break;
+                    case 1:
+                        this.city = this.district = this.street = this.community = {};
+                        break;
+                    case 2:
+                        this.district = this.street = this.community  = {};
+                        break;
+                    case 3:
+                        this.street = this.community = {};
+                        break;
+                    case 4:
+                        this.community = {};
+                }
+            },
+            // 取消摁钮
+            cannel(){
+                this.province ={}; //省
+                this.city = {}; //市
+                this.district = {}; //区,
+                this.street = {}; //街道
+                this.community= {}; //社区
+                this.show =false
+            },
+            //确认摁钮
+            confirm(){
+                let arr = [];
+                this.province.dept_id ? arr.push(this.province) : null;
+                this.city.dept_id ? arr.push(this.city) : null;
+                this.district.dept_id ? arr.push(this.district) : null;
+                this.street.dept_id ? arr.push(this.street) : null;
+                this.community.dept_id ? arr.push(this.community) : null;
+
+                arr = arr.filter(item => item !== null);
+                let area = [];
+                arr.forEach(item => {
+                    area.push(item.dept_id);
+                })
+                //进行修改区域
+                this.$store.dispatch(modifyArea,area)
+                this.$store.dispatch(modifyShowArea,arr[arr.length - 1].areaName);
+                this.showArea = this.$store.state.showArea;
+                this.getSwiper();
+                this.getIndexNewsClass();
+                this.cannel();
+            }
+        },
+    }
+</script>
+
+<style scoped lang="stylus">
+    #Index
+        box-sizing border-box
+        padding-bottom 2rem
+        padding-top func(44)
+    img
+        width 100%
+    .Popup {
+        display flex
+        justify-content flex-end
+        flex-direction column
+        align-items center
+    }
+    .button {
+        width 100%
+        height func(44)
+        display flex
+        justify-content space-between
+        align-items center
+        > button {
+            flex 1
+            height 100%
+            background-color: #6CB127
+            color #fff
+            &:first-of-type {
+                background-color: #f5f5f5
+                color #8A8A8A
+            }
+        }
+    }
+    .address {
+        width 100%
+        height func(44)
+        display flex
+        align-items center
+        justify-content center
+        box-sizing border-box
+        padding 0 func(15)
+        border-bottom func(1) solid #f5f5f5
+        > div {
+            flex 1;
+            height 100%
+            display flex
+            align-items center
+            justify-content center
+            box-sizing border-box
+            &.active {
+                color #6CB127
+                border-bottom func(3) solid #6CB127
+            }
+        }
+    }
+    .title {
+        width 100%
+        height: func(44)
+        display flex
+        align-items center
+        justify-content flex-start
+        box-sizing border-box
+        padding 0 func(15)
+        font-size func(16)
+        color #000
+    }
+    .removescrollbar {
+        background-color: transparent
+    }
+</style>

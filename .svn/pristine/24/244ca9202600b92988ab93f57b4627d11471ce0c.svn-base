@@ -1,0 +1,293 @@
+<template>
+    <div id="ApplyTalent">
+        <MyHeader :title="'申请上榜'"/>
+        <div>
+            <div class="item">
+                <p>
+                    <i style="padding-right:0.6rem">*</i>
+                    <span>姓名</span>
+                </p>
+                <input type="text" v-model="userName">
+                <i class="iconfont">&#xe636;</i>
+            </div>
+            <div class="item">
+                <p>
+                    <i style="padding-right:0.6rem">*</i>
+                    <span>性别</span>
+                </p>
+                <input type="text" v-model="userSex">
+                <i class="iconfont">&#xe636;</i>
+            </div>
+            <div class="item">
+                <p>
+                    <i style="padding-right:0.6rem">*</i>
+                    <span>身份证号</span>
+                </p>
+                <input type="text" v-model="userCard">
+                <i class="iconfont">&#xe636;</i>
+            </div>
+            <div class="item">
+                <p>
+                    <i>*</i>
+                </p>
+                <Field
+                    readonly
+                    clickable
+                    label="工作时间"
+                    placeholder="选择时间"
+                    v-model="TimeValue"
+                    @click="showTime = true"
+                />
+                <Popup v-model="showTime" position="bottom">
+                    <DatetimePicker
+                        type="datetime"
+                        v-model="currentDate"
+                        :min-date="minDate"
+                        :max-date="maxDate"
+                        @cancel="showTime = false"
+                        @confirm="showTime = false"
+                        @change="startTimeChange"
+                    />
+                </Popup>
+                <i class="iconfont">&#xe636;</i>
+            </div>
+            <div class="item">
+                <p>
+                    <i style="padding-right:0.6rem">*</i>
+                    <span>申报类型</span>
+                </p>
+                <input type="text" placeholder="请选择" disabled :value="type?type.type_name:''" >
+                <i class="iconfont" @click="showPicker(0)">&#xe636;</i>
+            </div>
+            <div class="item">
+                <p>
+                    <i style="padding-right:0.6rem">*</i>
+                    <span>突出亮点</span>
+                </p>
+                <input type="text" v-model="userLiang">
+                <i class="iconfont">&#xe636;</i>
+            </div>
+            <div class="item">
+                <p>
+                    <i style="padding-right:0.6rem">*</i>
+                    <span>联系电话</span>
+                </p>
+                <input type="text" placeholder="请输入联系电话" v-model="userPhone">
+                <i class="iconfont">&#xe636;</i>
+            </div>
+            <div class="item">
+                <p class="captcha">
+                    <i style="padding-right:0.6rem">*</i>
+                    <span>验证码</span>
+                </p>
+                <input type="text" placeholder="请输入验证码"   v-model="captcha">
+                <button @click="getCaptcha" v-show="!this.timer">点击获取</button>
+                <button class="no" v-show="this.timer">{{ timeLeft }}后再次获取</button>
+            </div>
+            <Lines />
+            <div class="item">
+                <p>
+                    <i style="padding-right:0.6rem">*</i>
+                    <span>详情描述</span>
+                </p>
+                <input type="text" disabled>
+            </div>
+            <textarea class="txtarea" placeholder="请输入详细说明" v-model="orderReasons"/>
+            <div class="item">
+                <p>
+                    <i style="padding-right:0.6rem">*</i>
+                    <span>图片上传</span>
+                </p>
+                <input type="text" disabled>
+            </div>
+            <Uploader v-model="fileList"
+                    :after-read="afterRead"
+                    :max-count="3"
+                    class="IupFile"
+                    @delete="deleteImg"
+            />
+            <div @click="upDataOut" class="btn">提交</div>
+            <Popup  v-model="show"
+                position="bottom"
+                :style="{ height: '50%' }">
+                <Picker
+                        show-toolbar
+                        :columns="columns"
+                        @cancel="onCancel"
+                        @confirm="onConfirm"
+                        value-key="showName"
+                ></Picker>
+            </Popup>
+        </div>
+    </div>
+</template>
+
+<script>
+    import MyHeader from "../../components/public/MyHeader";
+    import Lines from "../../components/public/Lines";
+    import { Toast,Picker,Field,Popup,DatetimePicker,Uploader } from 'vant';
+    export default {
+        name: "ApplyTalent",
+        data() {
+            return {
+                fileList:[],
+                TimeValue:'',
+                showTime:false,
+                EndTimeValue:'',
+                showEndTime:false,
+                minDate: new Date(2000, 0, 1),
+                maxDate: new Date(2200, 10, 1),
+                currentDate: new Date(),
+                userName:"",   //姓名
+                userSex:"",  //性别
+                userCard:"",  //身份证号
+                userPhone:"",//办理电话
+                captcha:"",//用户输入验证码
+                Captcha:"",//系统返回验证码
+                orderReasons:"",    //原因
+                orderContent:"",    //地址
+            }
+        },
+        methods: {
+            startTimeChange(e) {
+                let endTimeArr = e.getValues();//["2019", "03", "22", "17", "28"]
+                this.TimeValue = `${endTimeArr[0]}-${endTimeArr[1]}-${endTimeArr[2]} ${endTimeArr[3]}:${endTimeArr[4]}:00`
+            },
+            endTimeChange(e) {
+                let endTimeArr = e.getValues();//["2019", "03", "22", "17", "28"]
+                this.EndTimeValue = `${endTimeArr[0]}-${endTimeArr[1]}-${endTimeArr[2]} ${endTimeArr[3]}:${endTimeArr[4]}:00`
+            },
+            upDataOut(){}
+        },
+        components: {
+            MyHeader,
+            Picker,
+            Popup,
+            Field,
+            DatetimePicker,
+            Lines,
+            Uploader
+        },
+        created() {
+        },
+    }
+</script>
+
+<style scoped lang="stylus">
+#ApplyTalent {
+    width 100%
+    min-height 100vh
+    box-sizing  border-box;
+    padding-top 2rem;
+    > img {
+        width:100%;
+    }
+    .item {
+        width 100%
+        height func(44)
+        border-bottom: func(1) solid #f5f5f5
+        display flex
+        align-items center
+        justify-content space-between
+        > input {
+            flex 1
+            border 0
+            outline 0
+            background-color: transparent
+            text-align right
+            box-sizing border-box
+            color #BFBFBF
+            padding 0 func(15)
+            &::placeholder{
+                color #BFBFBF
+            }
+        }
+        > i {
+            margin-top: func(4)
+            color #BFBFBF
+        }
+        > p {
+            span {
+                color #BFBFBF
+            }
+            i {
+                color #f00
+            }
+        }
+        > button {
+            background-color: transparent
+            padding-left: func(15);
+            border-left func(2) solid #6CB127
+            color #6CB127
+            min-width func(80)
+            &.no {
+                color: #bfbfbf
+            }
+        }
+        >.captcha {
+            min-width func(50)
+        }
+    }
+    > .item {
+        width 100%
+        height func(44)
+        display flex
+        align-items center
+        padding 0 func(15)
+        justify-content space-between
+        box-sizing border-box
+        border-bottom func(1) solid #f5f5f5
+        > input {
+            flex 1
+            border 0
+            outline 0
+            background-color: transparent
+            text-align right
+            box-sizing border-box
+            color #BFBFBF
+            padding 0 func(15)
+            &::placeholder{
+                color #BFBFBF
+            }
+        }
+        > i {
+            margin-top: func(4)
+            color #BFBFBF
+        }
+        > p {
+            span {
+                color #BFBFBF
+            }
+            i {
+                color #f00
+            }
+        }
+
+    }
+    .txtarea {
+        width: 100%
+        box-sizing border-box
+        padding:0 func(15)
+        color #BFBFBF
+        height: func(108)
+        resize none
+        border 0
+        outline 0
+        &::placeholder {
+            color #BFBFBF
+        }
+    }
+    .btn{
+        width: 10.84rem;
+        height: 1.84rem;
+        background: #6cb127;
+        margin: 2rem auto 0;
+        color: #fff;
+        font-size: 0.6rem;
+        text-align: center;
+        line-height: 1.84rem;
+    }
+    
+    
+}
+</style>

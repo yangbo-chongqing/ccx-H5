@@ -1,0 +1,167 @@
+<template>
+    <div id="Merge">
+        <MyHeader :title="'三治合一'" :color="false"/>
+        <img src="http://www.mlxc365.com/images/sxccx/icon/banner1.png" alt="">
+        <Grid :gridList="gridList"/>
+        <Lines :bgc="'e5e5e5'"/>
+        <div class="title">
+            <div class="left">
+                <img src="http://www.mlxc365.com/images/sxccx/icon/Frame 4.png" />
+                <span>最新发布</span>
+            </div>
+            <div class="right">
+                <span>更多</span>
+                <i class="iconfont">&#xe636;</i>
+            </div>
+        </div>
+        <ul>
+            <li v-for="(item , index) in newsList" :key="index">
+                <NewsList v-if="item.showImg" :news="item"/>
+                <textList v-else :news="item"/>
+            </li>
+        </ul>
+    </div>
+</template>
+
+<script>
+    import MyHeader from "../../components/public/MyHeader";
+    import Grid from "../../components/government/Merge/Grid";
+    import Lines from "../../components/public/Lines";
+    import NewsList from "../../components/public/NewsList";
+    import textList from "../../components/public/textList";
+    import { getNewsClass } from "../../apis";
+    export default {
+        name: "Merge",
+        data() {
+            return {
+                newsList:null,
+                gridList:[
+                    {
+                        name:"警务信息",
+                        src:baseImgUrl+"zwgk0.png",
+                        pageRouter:"/Police.html"
+                    },
+                    {
+                        name:"法律常识",
+                        src:baseImgUrl+"zwgk1.png",
+                        pageRouter:"/Law.html"
+                    },
+                    {
+                        name:"法律咨询",
+                        src:baseImgUrl+"zwgk2.png",
+                        pageRouter:"/Lawconsultation.html"
+                    },
+                    {
+                        name:"社会组织",
+                        src:baseImgUrl+"zwgk3.png",
+                        pageRouter:"/Society.html"
+                    },
+                    // {
+                    //     name:"志愿服务",
+                    //     src:baseImgUrl+"zwgk4.png",
+                    //     pageRouter:"/volunteer.html"
+                    // },
+                    // {
+                    //     name:"家训家风",
+                    //     src:baseImgUrl+"zwgk5.png",
+                    //     pageRouter:"/instruction.html"
+                    // },
+                    // {
+                    //     name:"村民自治",
+                    //     src:baseImgUrl+"zwgk6.png",
+                    //     pageRouter:"/villager.html"
+                    // },
+                    // {
+                    //     name:"五长制度",
+                    //     src:baseImgUrl+"zwgk7.png",
+                    //     pageRouter:"/fiveLong.html"
+                    // }
+                ]
+            }
+        },
+        methods: {
+            getNewsClass(news_type = 30){
+                if(this.news_type){
+                    news_type = this.news_type;
+                }
+
+                const data = {
+                    pageSize:10,
+                    pageCurrent:1,
+                    news_type
+                }
+                getNewsClass({
+                    data,
+                    currentObject:this
+                }).then(msg => {
+                    if(~~msg.code === 1 && ~~msg.status === 200){
+                        msg = msg.data.list;
+                        if(news_type === 30){
+                            msg.forEach(item => {
+                                if(item.contentPic && item.contentPic !== "null" ){
+                                    item.showImg = item.contentPic.split(",")[0];
+                                }
+                                item.isNotice = true;
+                            })
+                        }
+                        this.newsList = msg
+                    }else {
+                        //获取失败
+                        this.GToast({message:"获取新闻失败"});
+                    }
+                })
+            },
+        },
+        components: {
+            MyHeader,
+            Grid,
+            Lines,
+            NewsList,
+            textList
+        },
+        created() {
+            this.getNewsClass();
+        },
+    }
+</script>
+
+<style scoped lang="stylus">
+#Merge {
+    width 100%
+    min-height 100vh
+    box-sizing border-box
+    padding-top func(44)
+    > img {
+        width 100%
+    }
+    > .title {
+        width 100%
+        height func(44)
+        display flex
+        justify-content space-between
+        align-items center
+        padding 0 func(15)
+        box-sizing border-box
+        border-bottom func(1) solid #f5f5f5
+        > .left {
+            height 100%
+            display flex
+            align-items center
+            > img {
+                width func(24)
+                height func(24)
+                margin-right func(12)
+            }
+        }
+        > .right {
+            height 100%
+            display flex
+            align-items center
+            color #8A8A8A
+            > i {
+                margin-top: func(4)
+            }
+        }
+    }
+}
+</style>

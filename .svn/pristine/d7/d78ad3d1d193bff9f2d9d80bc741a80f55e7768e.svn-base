@@ -1,0 +1,73 @@
+<template>
+    <div id="Tools">
+        <div v-for="(item ,index) in toolsList" :key="index" @click="goPage(item.pageRouter)">
+            <img :src="item.img" />
+            <p>{{ item.title}}</p>
+        </div>
+    </div>
+</template>
+
+<script>
+    import {isLogin } from "../../apis";
+    import { Dialog } from "vant"
+    export default {
+        name: "Tools",
+        props:{
+            toolsList:{
+                type:Array,
+                required:true
+            }
+        },
+        methods: {
+            async goPage(pageRouter){
+                const result =  await isLogin()
+                //未登录
+                if(result.code ===0 && ~~result.status === 400){
+                    Dialog.confirm({
+                        title:"温馨提示",
+                        message:"您暂未登录，是否前往登陆页面？"
+                    }).then(msg => {
+                        this.$router.push("/login.html");
+                    }).catch(err => {})
+                }else if(result.code ===0 && ~~result.status === 200){
+                    this.switchPage({pageRouter})
+                }else {
+                    //网络错误
+                    this.GToast({message:"网络错误"})
+                }
+            }
+        },
+        components: {},
+        created() {
+        },
+    }
+</script>
+
+<style scoped lang="stylus">
+    #Tools
+        width 100%
+        height func(200)
+        display flex
+        box-sizing border-box
+        flex-wrap wrap
+        div
+            width 25%
+            height func(100)
+            display flex
+            flex-direction column
+            align-items center
+            justify-content  center
+            box-sizing border-box
+            border-bottom func(1) solid #E6E6E6
+            border-right func(1) solid #E6E6E6
+            &:nth-of-type(4n)
+                border-right: 0
+            &:nth-of-type(n + 5)
+                border-bottom 0
+            img
+                width func(44)
+                height func(44)
+                margin-bottom func(10)
+            p
+                margin:0
+</style>

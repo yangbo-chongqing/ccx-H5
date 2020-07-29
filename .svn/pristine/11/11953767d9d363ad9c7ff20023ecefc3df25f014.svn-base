@@ -1,0 +1,53 @@
+<template>
+    <div id="ResultSearch">
+        <MyHeader :title="'结果查询'" :color="false"/>
+        <Lines />
+        <ResultList :goDetails="goDetails" :list="list"/>
+    </div>
+</template>
+
+<script>
+    import MyHeader from "../../components/public/MyHeader";
+    import Lines from "../../components/public/Lines";
+    import ResultList from "../../components/ResultSearch/ResultList";
+    import { getResultList } from "../../apis";
+    export default {
+        name: "ResultSearch",
+        data() {
+            return {
+                list:[]
+            }
+        },
+        methods: {
+            //跳转详情页面
+            goDetails(obj){
+                window.sessionStorage.setItem("resultObj" , window.JSON.stringify(obj))
+                this.$router.push("/ResultDetails.html");
+            },
+            getResultList(){
+                getResultList().then(msg => {
+                    console.log(msg);
+                    if(~~msg.code === 200){
+                        this.list = msg.data.list;
+                    }
+                })
+            }
+        },
+        components: {
+            MyHeader,
+            Lines,
+            ResultList
+        },
+        created() {
+            this.getResultList();
+        },
+    }
+</script>
+
+<style scoped lang="stylus">
+#ResultSearch {
+    width 100%
+    box-sizing border-box
+    padding-top func(44)
+}
+</style>

@@ -1,0 +1,22 @@
+<template>
+  <div :style="{ 'background-color':'#'+bgc }"></div>
+</template>
+
+<script>
+export default {
+  name: "Lines",
+  props: {
+    bgc: {
+      type: String,
+      default: "f8f8f8"
+    }
+  }
+};
+</script>
+
+<style scoped lang="stylus">
+div {
+  width: 100%;
+  height: func(12);
+}
+</style>

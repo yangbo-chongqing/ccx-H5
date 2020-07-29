@@ -1,0 +1,175 @@
+<template>
+    <div id="PartyPhotoDetails">
+        <MyHeader :title="'党建相册列表'"/>
+        <div id="photodetials">
+            <div class="photodetails-bg">
+                <img :src="this.$route.query.cover" />
+                <div class="img-mrak"></div>
+                <div class="bg-content">
+                <div>相册名称：<span>{{this.$route.query.photo_titel}}</span>(共{{this.$route.query.photoNumber}}张)</div>
+                <div>创建时间：{{this.$route.query.create_time}}</div>
+                <div>简介：{{this.$route.query.photo_titel_introduce}}</div>
+                </div>
+            </div>
+            <div class="photo-list">
+                <div class="list-main" v-for="(item , index) in list" :key="index" @click="goDetailsPhoto(item)">
+                <img :src="item.photo_url" />
+                <div class="photo-list-msg">
+                    <div><i class="iconfont">&#xe891;</i>评论<span>{{item.commentCount}}</span></div>
+                    <div  @click.stop="zan(item.photo_list_id)">
+                        <i class="iconfont">&#xe600;</i>点赞<span>{{item.fabulous}}</span>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    import MyHeader from "../components/public/MyHeader";
+    import { Toast } from 'vant';
+    import { photoDetails,getZan } from "../apis";
+    export default {
+        name: "PartyPhotoDetails",
+        data() {
+            return {
+                photo_titel_id: "",
+                photo_list_id:'',
+                photoNumber: '',
+                create_time: '',
+                photo_cover: '',
+                photo_titel: '',
+                photo_titel_introduce: '',
+                list:[],
+            }
+        },
+        methods: {
+            goDetailsPhoto(item){
+                this.$router.push({path:'/PartyPhotoListDetails.html',query:{ id:item.photo_list_id,img:item.photo_url,num:item.fabulous,com:item.commentCount,iszan:item.isFabulous}});
+            },
+            // 获取列表
+            photoDetails(){
+                photoDetails({
+                    url:"/Photos/getOnePhotoList",
+                    data:{
+                        photo_titel_id:this.$route.query.id
+                    }
+                }).then( msg => {
+                    if(~~msg.code === 0){
+                        msg = msg.data.list;
+                        this.list = msg;
+                    }else {
+                        this.GToast({message:"获取失败"})
+                    }
+                })
+            },
+            // 点赞
+            zan(id){
+                getZan({
+                    url:"/Photos/PhotoFabulous",
+                    data:{
+                        photo_list_id:id
+                    }
+                }).then( msg => {
+                    if(~~msg.code === 0 && ~~msg.status === 200){
+                        Toast('点赞成功');
+                        this.photoDetails()
+                    }else {
+                        Toast('您已经点过赞了！');
+                    }
+                })
+            }
+        },
+        components: {
+            MyHeader,
+            Toast
+        },
+        created() {
+            this.photoDetails()
+            this.photo_titel_id=this.$route.query.id;
+        },
+    }
+</script>
+
+<style scoped lang="stylus">
+#PartyPhotoDetails {
+    width 100%
+    min-height 100vh
+    box-sizing  border-box;
+    padding-top 2rem;
+    > img {
+        width:100%;
+    }
+    .active{
+        color:red;
+    }
+    /* 背景 */
+    .photodetails-bg{
+        position: relative;
+        margin: 0 0.6rem 0.8rem;
+    }
+    .photodetails-bg>img{
+        width: 100%;
+        height:  7.52rem;
+    }
+    .img-mrak{
+        position: absolute;
+        top: 0;
+        width: 100%;
+        height:  7.52rem;
+        background:rgba(0,0,0,0.4);
+    }
+    .bg-content{
+        position: absolute;
+        left: 2rem;
+        top: 2rem;
+        >div{
+            color: #fff;
+            font-size: 0.6rem;
+            margin-bottom: 0.4rem;
+        }
+        >div:last-child{
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+            overflow: hidden;
+        }
+    }
+    /* 列表 */
+    .photo-list{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f5f5f5;
+        flex-wrap: wrap;
+    }
+    .list-main{
+        >img {
+            width: 6.72rem;
+            height: 5rem;
+        }
+    }
+    .list-main:nth-child(2n+1){
+        padding 0 0 1rem 0.6rem
+    }
+    .list-main:nth-child(2n){
+        padding 0 0.6rem 1rem 0
+    }
+    .photo-list-msg{
+        margin-top: 0.4rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        font-size: 0.5rem;
+        color: #8A8A8A;
+        line-height: 0.5rem;
+        .iconfont{
+            margin-right: 0.3rem;
+        }
+    }
+    .photo-list-msg>div>span:last-child{
+        color: #d33333;
+    }
+}
+</style>

@@ -1,0 +1,19 @@
+import Vue from 'vue'
+import App from './App.vue'
+import router from './router'
+import store from './store'
+import mixins from "./mixins/mixins";
+import Router from 'vue-router';
+const routerPush = Router.prototype.push;
+const baseImgUrl = "http://www.mlxc365.com/images/sxccx/icon/";
+window.baseImgUrl = baseImgUrl;
+Router.prototype.push = function push(location) {
+  return routerPush.call(this, location).catch(error=> error)
+}
+Vue.mixin(mixins);
+Vue.config.productionTip = false;
+new Vue({
+  router,
+  store,
+  render: h => h(App)
+}).$mount('#app');

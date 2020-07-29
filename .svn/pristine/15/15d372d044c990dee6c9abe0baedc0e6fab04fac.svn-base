@@ -1,0 +1,441 @@
+<template>
+  <div class="personalData">
+    <MyHeader :title="'个人资料'" />
+    <!-- 顶部头像加文字 -->
+    <!-- <p class="username"></p> -->
+    <!-- 头像 -->
+    <div class="list1 top">
+      <span class>个人头像</span>
+      <Uploader :after-read="afterRead" :max-count="1">
+        <div class="imgbox">
+          <label for="file">
+            <img :src="!!userInfo.picId ? userInfo.picId : 'https://hsz.mlxc365.com/imgTurnForWX/img/zx/ic_avatar_icon.png'" mode="widthFix" alt />
+          </label>
+          <span class="left">></span>
+        </div>
+      </Uploader>
+    </div>
+    <!-- 账号 -->
+    <div class="list1">
+      <span class="no">账 号</span>
+      <div>{{userInfo.username}}</div>
+      <!-- <span class="left">></span> -->
+    </div>
+    <!-- 昵称 -->
+    <div class="list1" @click="nicknameModal">
+      <span class="no">昵 称</span>
+      <div>{{userInfo.name}}</div>
+      <span class="left">></span>
+    </div>
+    <!-- 性别 -->
+    <div class="list1" @click="showSex = !showSex">
+      <span class="no">性 别</span>
+      <div v-if="userInfo.sex == '1'">男</div>
+      <div v-else>女</div>
+      <span class="left">></span>
+    </div>
+    <!-- 地区 -->
+    <div class="list1" @click="changeRegionModal()">
+      <span class="no">地 区</span>
+      <div>{{userInfo.deptName}}</div>
+      <span class="left">></span>
+    </div>
+    <!-- 修改昵称弹窗 -->
+    <div id="popLayer" @click="nicknameModal" v-show="modalNickname"></div>
+    <div class="bounCed" v-show="modalNickname">
+      <span>修改昵称</span>
+      <div>
+        <div class="bounImput">
+          <input type="text" name="nickname" placeholder="请输入昵称" v-model="intNickname" />
+        </div>
+        <!-- 提交按钮 -->
+        <button class="But" @click="modifyNickname()">提交</button>
+      </div>
+    </div>
+    <!-- 选择性别弹框 -->
+    <ActionSheet v-model="showSex" :actions="sexList" @select="onSelect" cancel-text="取消" />
+    <!-- 选择地区弹框 -->
+    <div class="regionModal" v-if="regionModal">
+      <div class="mask"></div>
+      <div class="cnt">
+        <div class="tit">
+          <p>请选择</p>
+          <img src='https://hsz.mlxc365.com/images/wxImages/zx/ic_close2_icon.png' @click='regionModal = !regionModal' />
+        </div>
+        <div class="stit" v-if="!province">请选择省份</div>
+        <div class="stit" v-if="!!province && !city">请选择城市</div>
+        <div class="stit" v-if="!!province && !!city && !county">请选择区县</div>
+        <div class="stit" v-if="!!province && !!city && !!county && !street">请选择街道</div>
+        <div class="stit" v-if="!!province && !!city && !!county && !!street && !community">请选择社区</div>
+        <div class="list">
+          <div class="li" v-for="(item,index) in areaList" :key="index" @click="onArea(item)">{{item.areaName}}</div>
+          <div class="li" v-if="areaList.length == 0">暂无</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+import MyHeader from "@/components/public/MyHeader";
+import { Uploader, Popup, Picker, Toast, ActionSheet } from "vant";
+import { upImage, changeUserInfo, getByParentid } from '@/apis';
+import { modifyUserInfo } from "@/store/actionTypes"
+export default {
+  name: "fiveLong",
+  components: {
+    MyHeader,
+    Uploader,
+    Popup,
+    Picker,
+    Toast,
+    ActionSheet
+  },
+  data() {
+    return {
+      userInfo: "",
+      modalNickname: false, //修改昵称弹框是否隐藏
+      intNickname: '', //输入的昵称
+      showSex: false,
+      sexList: [
+        {
+          id: 1,
+          name: "男"
+        },
+        {
+          id: 2,
+          name: "女"
+        }
+      ],
+      regionModal: false,//地区弹框
+      areaList: [],//选择列表
+      province: null,//选中的省份
+      city: null,//选中的市
+      county: null,//选中的区县
+      street: null,//选中的街道
+      community: null,//选中的社区
+    };
+  },
+  methods: {
+    //选择头像
+    afterRead(file){
+      Toast.loading({
+        message: '上传中...',
+        forbidClick: true
+      });
+      upImage(file.file).then(res => {
+        if(res.statusCode == 200){
+          let picId = res.data[0];
+          this.upHeader(picId)
+        }else{
+          this.GToast({message:" 上传头像失败"})
+        }
+      })
+    },
+    //上传头像
+    upHeader(e){
+      let data = {
+        pic_id: e
+      }
+      changeUserInfo({data: data}).then(res => {
+        if(res.code == 0){
+          let userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+          userInfo.picId = e;
+          sessionStorage.setItem('userInfo',JSON.stringify(userInfo));
+          this.$store.dispatch(modifyUserInfo,userInfo);
+          this.userInfo = userInfo;
+          Toast.success('更改头像成功');
+        }else{
+          this.GToast({message:" 上传头像失败"})
+        }
+      })
+    },
+    // 修改昵称弹窗
+    nicknameModal() {
+      this.intNickname = '';
+      this.modalNickname = !this.modalNickname;
+    },
+    //修改昵称
+    modifyNickname(){
+      let data = {
+        nick_name: this.intNickname
+      }
+      changeUserInfo({data: data}).then(res => {
+        if(res.code == 0){
+          let userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+          userInfo.name = this.intNickname;
+          sessionStorage.setItem('userInfo',JSON.stringify(userInfo));
+          this.$store.dispatch(modifyUserInfo,userInfo);
+          this.userInfo = userInfo;
+          this.modalNickname = false;
+          Toast.success('更改昵称成功');
+        }else{
+          this.GToast({message:"更改昵称失败"})
+        }
+      })
+    },
+    //修改性别
+    onSelect(e){
+      let data = {
+        sex: e.id
+      }
+      changeUserInfo({data: data}).then(res => {
+        if(res.code == 0){
+          let userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+          userInfo.sex = e.id;
+          sessionStorage.setItem('userInfo',JSON.stringify(userInfo));
+          this.$store.dispatch(modifyUserInfo,userInfo);
+          this.userInfo = userInfo;
+          this.showSex = false;
+          Toast.success('更改性别成功');
+        }else{
+          this.GToast({message:"更改性别失败"})
+        }
+      })
+    },
+    //地区弹框
+    changeRegionModal(){
+      this.province = null;//选中的省份
+      this.city = null;//选中的市
+      this.county = null;//选中的区县
+      this.street = null;//选中的街道
+      this.community = null;//选中的社区
+      if (this.regionModal){
+        this.regionModal = false
+      }else{
+        this.getRegion();//获取所有省份
+        this.regionModal = true
+      }
+    },
+    //获取地区
+    getRegion(e){
+      let data = {
+        dept_id: e || 1
+      }
+      getByParentid({data: data}).then(res => {
+        if(res.code == 0){
+          this.areaList = res.data
+        }else{
+          this.GToast({message:"获取地区失败"});
+        }
+      })
+    },
+    //点击地区选项
+    onArea(e){
+      let dept_id = e.dept_id;
+      if(!this.province){//省份
+        this.province = e;
+        this.areaList = [];
+        this.getRegion(dept_id)
+      } else if (!!this.province && !this.city) {//市
+        this.city = e;
+        this.areaList = [];
+        this.getRegion(dept_id)
+      } else if (!!this.province && !!this.city && !this.county) {//区县
+        this.county = e;
+        this.areaList = [];
+        this.getRegion(dept_id)
+      } else if (!!this.province && !!this.city && !!this.county && !this.street) {//街道
+        this.street = e;
+        this.areaList = [];
+        this.getRegion(dept_id)
+      } else if (!!this.province && !!this.city && !!this.county && !!this.street && !this.community) {//社区
+        this.community = e;
+        this.areaList = [];
+        //修改地区
+        this.changeCommunity();
+      }
+    },
+    //修改地区
+    changeCommunity(){
+      console.log(this.community)
+      let data = {
+        dept_id: this.community.dept_id
+      }
+      changeUserInfo({data: data}).then(res => {
+        if(res.code == 0){
+          let userInfo = JSON.parse(sessionStorage.getItem('userInfo'));
+          userInfo.deptId = this.community.dept_id;
+          userInfo.deptName = this.community.areaName;
+          sessionStorage.setItem('userInfo',JSON.stringify(userInfo));
+          this.$store.dispatch(modifyUserInfo,userInfo);
+          this.userInfo = userInfo;
+          this.regionModal = false;
+          Toast.success('更改地区成功');
+        }else{
+          this.GToast({message:"更改地区失败"})
+        }
+      })
+    },
+  },
+  created() {
+    let info = sessionStorage.getItem("userInfo");
+    this.userInfo = JSON.parse(info);
+  }
+};
+</script>
+<style lang="stylus" scoped>
+.personalData {
+  width: 100%;
+  height: 100vh;
+  padding: func(15);
+  box-sizing: border-box;
+
+  .top {
+    margin-top: func(24);
+    display: flex;
+  }
+
+  .list1 {
+    border-bottom: func(1) solid #ededed;
+    width: 100%;
+    font-size: func(14);
+    display: flex;
+    overflow: hidden;
+    padding: func(20) func(0);
+    box-sizing: border-box;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+
+    .no {
+      letter-spacing: func(12);
+      flex: 1;
+    }
+
+    .left {
+      margin-left: func(8);
+    }
+
+    .list1 div {
+      position: absolute;
+      right: func(80);
+    }
+
+    .imgbox {
+      width: func(54);
+      height: func(54);
+      display: flex;
+      align-items: center;
+
+      img {
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
+
+  .bounCed {
+    width: func(312);
+    height: func(180);
+    background-color: #ffffff;
+    margin-left: func(16);
+    padding: func(15);
+    box-sizing: border-box;
+    text-align: center;
+    position: absolute;
+    top: func(250);
+
+    span {
+      display: flex;
+      justify-content: center;
+      color: black;
+      font-size: func(16);
+    }
+
+    .bounImput {
+      border: func(1) solid rgb(135, 135, 135);
+      border-radius: func(40);
+      margin-top: func(20);
+      width: func(219);
+      height: func(38);
+      margin-left: func(24);
+      display: flex;
+      align-items: center;
+      padding-left: func(15);
+
+      input {
+        border: 0;
+      }
+    }
+
+    button {
+      border-radius: func(50);
+      width: func(100);
+      height: func(40);
+      background: #6cb127;
+      color: #fff;
+      font-size: func(16);
+      margin-top: func(20);
+    }
+  }
+
+  #popLayer {
+    position: absolute;
+    height: 100%;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: #E5E5E5;
+    opacity: 0.8;
+  }
+  
+  .regionModal{
+    position: fixed;
+    z-index: 2;
+  }
+  .regionModal .mask{
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: #000;
+    opacity: .5;
+  }
+  .regionModal .cnt{
+    width: 100%;
+    height: func(350);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    background: #fff;
+    z-index: 3;
+  }
+  .regionModal .cnt .tit{
+    width: 100%;
+    height: func(45);
+    border-bottom: 1px solid #ccc;
+    text-align: center;
+    position: relative;
+  }
+  .regionModal .cnt .tit p{
+    line-height: func(45);
+    font-size: func(14);
+    color: #666;
+  }
+  .regionModal .cnt .tit img{
+    width: func(20);
+    height: func(20);
+    position: absolute;
+    right: func(12);
+    top: func(12);
+  }
+  .regionModal .cnt .stit{
+    line-height: func(35);
+    padding: 0 func(12);
+    font-size: func(13);
+    font-weight: bold;
+  }
+  .regionModal .cnt .list{
+    width: 100%;
+    height: func(270);
+    padding: 0 func(12);
+    overflow: auto;
+  }
+  .regionModal .cnt .list .li{
+    line-height: func(40);
+    font-size: func(12);
+  }
+}
+</style>

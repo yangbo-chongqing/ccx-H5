@@ -1,0 +1,57 @@
+<template>
+    <div id="Tools">
+        <div v-for="(item ,index) in toolsList" :key="index" @click="goPage(item.pageRouter)">
+            <img :src="item.img" />
+            <p>{{ item.title}}</p>
+        </div>
+    </div>
+</template>
+
+<script>
+    export default {
+        name: "Tools",
+        props:{
+            toolsList:{
+                type:Array,
+                required:true
+            }
+        },
+        methods: {
+            goPage(pageRouter){
+                this.switchPage({pageRouter})
+            }
+        },
+        components: {},
+        created() {
+        },
+    }
+</script>
+
+<style scoped lang="stylus">
+    #Tools
+        width 100%
+        height func(200)
+        display flex
+        box-sizing border-box
+        flex-wrap wrap
+        div
+            width 25%
+            height func(100)
+            display flex
+            flex-direction column
+            align-items center
+            justify-content  center
+            box-sizing border-box
+            border-bottom func(1) solid #E6E6E6
+            border-right func(1) solid #E6E6E6
+            &:nth-of-type(4n)
+                border-right: 0
+            &:nth-of-type(n + 5)
+                border-bottom 0
+            img
+                width func(44)
+                height func(44)
+                margin-bottom func(10)
+            p
+                margin:0
+</style>

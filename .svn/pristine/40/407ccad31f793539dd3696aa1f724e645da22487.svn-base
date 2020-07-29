@@ -1,0 +1,116 @@
+<template>
+    <div id="Estate">
+        <MyHeader title="产业富村"/>
+        <img src="../../assets/img/estate/banner.png" />
+        <Tools :toolsList="toolsList" :swiperPage="swiperPage"/>
+        <div class="line" />
+        <Options :optionFlag="optionFlag" :modifyFlag="modifyFlag"/>
+        <GoodsList :optionFlag="optionFlag" v-for="item in goodsList" :key="item.create_date" :goods = "item"  :swiperPage="swiperPage"/>
+        <img src="../../assets/img/noData.png" alt="" v-show="!goodsList.length">
+    </div>
+</template>
+
+<script>
+    import MyHeader from "../../components/public/MyHeader";
+    import Tools from "../../components/estate/Tools";
+    import GoodsList from "../../components/estate/GoodsList";
+    import Options from "../../components/estate/Options";
+    import { market } from "../../apis";
+    import md5 from "js-md5";
+    export default {
+        name: "Estate",
+        data() {
+            return {
+                toolsList:[
+                    {title: "产业地图" , src:require("../../assets/img/noImg.png") , pagelink:"/estateMap.html"},
+                    {title: "集体经济" , src:require("../../assets/img/noImg.png") , pagelink:"/collective.html"},
+                    {title: "一村一品" , src:require("../../assets/img/noImg.png") , pagelink:"/shop"},
+                    {title: "农机服务" , src:require("../../assets/img/noImg.png") , pagelink:"/agriculturalServer.html"}
+                    ],
+                optionFlag:0,
+                goodsList:[],
+
+            }
+        },
+        methods: {
+            //修改选项标识
+            modifyFlag(flag){
+                //0 === 出售 1 ===需求
+                this.optionFlag = flag;
+                const data = flag === 0 ? {demand_type : '出售'} : {demand_type : '需求'};
+                market({data , currentObject:this}).then(msg => {
+                    if(~~msg.code === 0 && ~~msg.status === 200){
+                        msg = msg.data.list;
+                        this.goodsList = msg
+                    }else if(~~msg.code === 0 && ~~msg.status === 400){
+                        this.goodsList = []
+                        this.GToast({message : "暂无数据"})
+                    }else {
+                        this.GToast({message : "获取失败"})
+                    }
+                }).catch(err =>{
+                    this.GToast({message : "网络错误"})
+                })
+            },
+            //跳转页面
+            swiperPage(baz_id,page){
+                if (baz_id){
+                    this.switchPage({
+                        pageRouter: "/estateDetails.html",
+                        params:{
+                            baz_id
+                        }
+                    })
+                }else {
+                    if(page === "/shop"){
+                        const userInfo = this.$store.state.userInfo;
+                        const username = userInfo.username;
+                        const password = md5(userInfo.plaintextPassword);
+                        let url = "http://shop.mlxc365.com/#/index";
+                        url = url + "?username="+username+"&password="+password;
+                        window.open(url,"_self");
+                    }else {
+                        this.switchPage({pageRouter: page})
+                    }
+                }
+            },
+
+        },
+        components: {
+            MyHeader,
+            Tools,
+            GoodsList,
+            Options
+        },
+
+        created() {
+
+        },
+        mounted() {
+            this.modifyFlag(0)
+        },
+        filters: {},
+        computed: {},
+        watch: {}
+    }
+
+</script>
+
+<style scoped lang="stylus">
+    #Estate {
+        width 100%
+        box-sizing border-box
+        padding-top:func(44)
+        min-height 100vh
+        > img {
+            max-width 100%
+            display block
+            margin 0 auto
+        }
+        > .line {
+            width 100%
+            height func(8)
+            background-color: #f8f8f8
+        }
+    }
+</style>

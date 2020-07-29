@@ -1,0 +1,188 @@
+<template>
+  <div id="vr">
+    <MyHeader :title="'VR展示'" />
+    <div
+      class="NewsList"
+      v-for="(item , index) in newsList"
+      :key="index"
+      @click="goVR(item.videos)"
+    >
+      <img :src="item.showImg" />
+      <div class="info">
+        <h6>
+          <span>「{{item.typeName}}」</span>
+          {{ item.title }}
+        </h6>
+        <p>
+          <img src="http://119.3.196.255:7604/images/iconPic/locate.png" alt />
+          <span>{{ item.areaName }}</span>
+        </p>
+        <p>
+          <span>
+            <img src="http://119.3.196.255:7604/images/iconPic/tab_more_select.png" alt />
+            <span>{{ item.CreateName }}</span>
+          </span>
+          <span>
+            <img src="http://119.3.196.255:7604/images/iconPic/ic_time.png" alt />
+            <span>{{item.create_date | formatTime}}</span>
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import MyHeader from "../../components/public/MyHeader";
+import NewsList from "../../components/public/NewsList";
+import imageList from "../../components/public/imageList";
+import { getNewsClass } from "../../apis";
+export default {
+  name: "vr",
+  data() {
+    return {
+      newsList: null
+    };
+  },
+  methods: {
+    getNewsClass(news_type = 43) {
+      if (this.news_type) {
+        news_type = this.news_type;
+      }
+
+      const data = {
+        pageSize: 10,
+        pageCurrent: 1,
+        news_type
+      };
+      getNewsClass({
+        data,
+        currentObject: this
+      }).then(msg => {
+        if (~~msg.code === 1 && ~~msg.status === 200) {
+          msg = msg.data.list;
+          if (news_type === 43) {
+            msg.forEach(item => {
+              if (item.contentPic && item.contentPic !== "null") {
+                item.showImg = item.contentPic.split(",")[0];
+                item.typeName = "VR";
+              } else {
+                item.showImg = require("../../assets/img/noImg.png");
+              }
+            });
+          }
+          this.newsList = msg;
+        } else {
+          //获取失败
+          this.GToast({ message: "获取新闻失败" });
+        }
+      });
+    },
+    goVR(item) {
+      console.log(item);
+      window.open(item, "_self");
+    }
+  },
+  filters: {
+    formatTime(date) {
+      let index = date.lastIndexOf(" "); //截取空格前的年月日  不要具体的时间
+      return date.substring(0, index);
+    },
+    formatType(type) {
+      if (type === "党务公开") {
+        return "党务";
+      } else if (type === "村务公开") {
+        return "村务";
+      } else {
+        return "政务";
+      }
+    }
+  },
+  components: {
+    MyHeader,
+    NewsList,
+    imageList
+  },
+  created() {
+    this.getNewsClass();
+  }
+};
+</script>
+
+<style scoped lang="stylus">
+#vr {
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding-top: 2rem;
+
+  > img {
+    width: 100%;
+  }
+
+  .NewsList {
+    width: 100%;
+    box-sizing: border-box;
+    background: #ffffff;
+    height: func(120);
+    padding: func(26) func(15) func(31.5) func(15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: func(1) solid #e3e3e3;
+
+    img {
+      width: func(110);
+      height: func(82.5);
+      border-right: func(5);
+    }
+
+    .info {
+      width: func(223);
+      height: func(82.5);
+
+      h6 {
+        width: 100%;
+        height: func(38);
+        line-height: func(19);
+        font-size: func(14);
+        nLine();
+        font-weight: 400;
+
+        span {
+          color: #d33333;
+        }
+      }
+
+      p {
+        margin-top: func(10);
+        height: func(12);
+        display: flex;
+        margin-right: func(8);
+        align-items: center;
+
+        img {
+          width: func(12);
+          height: func(12);
+          margin-right: func(8);
+        }
+
+        span {
+          font-size: func(12);
+          color: #8A8A8A;
+        }
+
+        &:last-of-type {
+          justify-content: space-between;
+
+          span {
+            display: flex;
+            align-items: center;
+            color: #8A8A8A;
+          }
+        }
+      }
+    }
+  }
+}
+</style>

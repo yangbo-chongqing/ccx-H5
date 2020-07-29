@@ -1,0 +1,59 @@
+//屏幕分为15等份
+number = 15
+//计算
+computed(width){
+  return width / number
+}
+//居中
+html
+  display flex
+  height 100vh
+  box-sizing border-box
+  justify-content center
+// 414 - max
+@media all and (min-width: 415px)
+  html
+    font-size computed(375px)
+  body
+    width 375px
+//411 - 414
+@media all and (max-width: 415px)
+  html
+    font-size computed(414px)
+  body
+    width 414px
+
+//375 - 411
+@media all and (max-width: 412px)
+  html
+    font-size computed(411px)
+  body
+    width 411px
+
+//360 - 375
+@media all  and (max-width: 376px)
+  html
+    font-size computed(375px)
+  body
+    width 375px
+
+//320 - 360
+@media all and  (max-width: 361px)
+  html
+    font-size computed(360px)
+  body
+    width 360px
+
+//320
+@media all and (max-width: 320px)
+  html
+    font-size computed(320px)
+  body
+    width 320px
+
+body
+  margin 0 auto
+
+div,p,span,li{
+  font-size (14 / 25) * 1rem
+}

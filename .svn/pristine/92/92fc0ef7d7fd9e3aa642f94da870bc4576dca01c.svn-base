@@ -1,0 +1,226 @@
+<template>
+    <div id="HappinessDetails">
+        <MyHeader :title="'新闻详情'"/>
+        <div class="top">
+            <h6>{{ news.title }}</h6>
+            <div>
+                <div class="left">
+                    <div>
+                        <p>发布时间：{{ news.createDate | formatTime}}</p>
+                    </div>
+                </div>
+                <div class="right">
+                   <span>{{ news.likeCount }}</span>
+                    次浏览
+                </div>
+            </div>
+        </div>
+        <div class="middle">
+            <div class="left">
+                <img :src="news.picId" />
+                <div>
+                    <h6>{{ news.createUserName }}</h6>
+                </div>
+            </div>
+            <div class="right">
+                <p v-if="news.status===0" class="p1">已关注</p>
+                <p v-if="news.status===1" class="p2">关注</p>
+            </div>
+        </div>
+        <div class="bottom" v-html="news.content"/>
+    </div>
+</template>
+
+<script>
+    import MyHeader from "@/components/public/MyHeader";
+    import {getHapplyDetails} from "@/apis";
+    export default {
+        name: "HappinessDetails",
+        data() {
+            return {
+                news:{}
+            }
+        },
+        methods: {
+            //获取详情
+            getHapplyDetails(id){
+                const data = id
+                getHapplyDetails({
+                    url:"/dp_happy_share/get",
+                    data
+                }).then(msg => {
+                    console.log(msg);
+                    if(~~msg.code === 200){
+                        msg = msg.data;
+                        this.news = msg;
+                    }
+                })
+            }
+        },
+        filters:{
+            formatTime(date){
+                date = new Date(date);
+                const year = date.getFullYear();
+                const month = date.getMonth() + 1;
+                const day = date.getDate() ;
+                return `${year}年${month}月${day}日`;
+            },
+            formatUserImg(img){
+                return baseImgUrl + img;
+            }
+        },
+        components: {
+            MyHeader
+        },
+        created() {
+            const Id = this.decodeBase64(this.$route.query)
+            this.getHapplyDetails(Id)
+        },
+    }
+</script>
+
+<style scoped lang="stylus">
+#HappinessDetails {
+    width 100%
+    box-sizing border-box
+    padding-top func(44)
+    > .top {
+        width 100%
+        max-height func(128.5)
+        box-sizing border-box
+        padding func(8) func(15) 0 func(15)
+        > h6{
+            width: 100%
+            max-height func(40)
+            font-size func(14)
+            font-weight 400
+            color #444
+            line-height func(20)
+            nLine()
+        }
+        > div {
+            width 100%
+            height func(50)
+            box-sizing border-box
+            display flex
+            align-items center
+            justify-content space-between
+            border-bottom func(1) solid #f5f5f5
+            > .left {
+                display flex
+                align-items center
+                height:100%
+                > img {
+                    width: func(44)
+                    height func(44)
+                    border-radius 50%
+                    margin-right: func(12)
+                }
+                > div{
+                    display flex
+                    flex-direction column
+                    justify-content center
+                    > h6 {
+                        font-size func(14)
+                    }
+                    > p {
+                        font-size func(12)
+                        color #999
+                    }
+                }
+            }
+
+            > .right {
+                font-size func(14)
+                color #8a8a8a
+                > span {
+                    color #D33333
+                }
+            }
+        }
+    }
+    >.middle{
+        width 100%
+        max-height func(128.5)
+        box-sizing border-box
+        padding func(8) func(15) 0 func(15)
+        display: flex;
+        justify-content: space-between;
+        align-items center
+        > h6{
+            width: 100%
+            max-height func(40)
+            font-size func(14)
+            font-weight 400
+            color #444
+            line-height func(20)
+            nLine()
+        }   
+        > .left {
+            width 100%
+            height func(50)
+            box-sizing border-box
+            display flex
+            align-items center
+            justify-content flex-start
+            > img {
+                width: func(44)
+                height func(44)
+                border-radius 50%
+                margin-right: func(12)
+            }
+            > div{
+                display flex
+                flex-direction column
+                justify-content center
+                > h6 {
+                    font-size func(14)
+                }
+                > p {
+                    font-size func(12)
+                    color #999
+                }
+            }
+        }
+
+        > .right {
+            font-size func(14)
+            font-size: 0.56rem;
+            width: 3rem;
+            height: 0.9rem;
+            text-align: center;
+            > .p1 {
+                border-radius: 0.5rem;
+                color: #fff;
+                background: rgba(108, 177, 39, 0.96);
+            }
+            >.p2{
+                border-radius: 0.5rem;
+                background: rgba(108, 177, 39, 0.2);
+                color: #6CB127
+            }
+        }
+    }
+    > .bottom {
+        width 100%
+        box-sizing border-box
+        padding func(12.5) func(15)
+        img {
+            max-width 100% !important
+        }
+        >>>span,
+        >>>p,
+        >>>div,
+        >>>h1,
+        >>>h2,
+        >>>h3,
+        >>>h4,
+        >>>h5,
+        >>>h6
+        {
+            font-size func(16) !important
+            color #444
+        }
+    }
+}
+</style>

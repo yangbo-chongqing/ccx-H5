@@ -1,0 +1,79 @@
+<template>
+    <div id="EstateMap">
+        <MyHeader title="产业地图"/>
+        <baidu-map class="bm-view" ak="2WCYGwx1p5aQ3u9k36ianNClEgGQb8dG"
+                   :center="center"
+                   :zoom="zoom"
+                   @ready="handler"
+                   @moving="syncCenterAndZoom"
+                   @moveend="syncCenterAndZoom"
+                   @zoomend="syncCenterAndZoom"
+        >
+            <bm-scale anchor="BMAP_ANCHOR_TOP_RIGHT" />
+            <bm-navigation anchor="BMAP_ANCHOR_TOP_RIGHT" />
+            <bm-map-type :map-types="['BMAP_NORMAL_MAP', 'BMAP_HYBRID_MAP']" anchor="BMAP_ANCHOR_TOP_LEFT" />
+            <bm-geolocation anchor="BMAP_ANCHOR_BOTTOM_RIGHT" :showAddressBar="true" :autoLocation="true" />
+        </baidu-map>
+    </div>
+</template>
+
+<script>
+    import MyHeader from "../../components/public/MyHeader";
+    import {BaiduMap , BmScale , BmNavigation , BmMapType , BmGeolocation} from 'vue-baidu-map'
+    export default {
+        name: "EstateMap",
+        data() {
+            return {
+                center: {lng: 0, lat: 0},
+                zoom: 19
+            }
+        },
+        methods: {
+            syncCenterAndZoom (e) {
+                const {lng, lat} = e.target.getCenter()
+                this.center.lng = lng;
+                this.center.lat = lat;
+                this.zoom = e.target.getZoom();
+            },
+            handler(){
+                let geolocation = new BMap.Geolocation();
+                geolocation.getCurrentPosition(r=> {
+                    let lng=r.longitude;
+                    let lat=r.latitude;
+                    this.center.lng=lng;
+                    this.center.lat=lat;
+                    // this.center={lng:lng,lat:lat}
+                },{enableHighAccuracy:true})
+            },
+        },
+        components: {
+            MyHeader,
+            BaiduMap,
+            BmScale,
+            BmNavigation,
+            BmMapType,
+            BmGeolocation
+        },
+        created() {
+        },
+        mounted() {
+        },
+        filters: {},
+        computed: {},
+        watch: {}
+    }
+
+</script>
+
+<style scoped lang="stylus">
+#EstateMap {
+    width 100%
+    height 100vh
+    box-sizing border-box
+    padding-top func(44)
+    .bm-view {
+        width 100%
+        height 100%
+    }
+}
+</style>

@@ -1,0 +1,63 @@
+<template>
+    <header>
+        <div @click="showPopup">
+            <i class="iconfont">&#xe62d;</i>
+            <span>{{ showArea }}</span>
+        </div>
+        <p>首页</p>
+    </header>
+</template>
+
+<script>
+    export default {
+        name: "MyHeader",
+        props:{
+            showPopup:{
+                type:Function,
+                required: true
+            },
+            showArea:{
+                type: String,
+                required: true
+            }
+        },
+        methods: {},
+        components: {},
+        created() {
+        },
+    }
+</script>
+
+<style scoped lang="stylus">
+    header
+        min-width 320px
+        max-width 750px
+        width 15rem
+        height func(44)
+        display flex
+        align-items center
+        justify-content center
+        position fixed
+        top 0
+        left 50%
+        transform translateX(-50%)
+        z-index 2
+        background #fff
+        box-sizing border-box
+        padding 0 0.4rem
+        div
+            height (22 / 25) * 1rem
+            position absolute
+            top 50%;
+            left (10 / 25) * 1rem;
+            transform translateY(-50%)
+            > i {
+                margin-right func(7.5)
+                color #6CB127
+                font-size func(18)
+            }
+            > span {
+                font-size func(11)
+                color #444444
+            }
+</style>

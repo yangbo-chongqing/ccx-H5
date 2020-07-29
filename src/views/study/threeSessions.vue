@@ -1,0 +1,616 @@
+<template>
+  <div class="threeSessions">
+    <MyHeader :title="'三会一课'" />
+    <div class="topbox">
+      <div class="date">{{date}}</div>
+      <div class="day">{{week}}</div>
+      <div class="timebox">
+        <div class="time">
+          <span></span>
+          <p>{{time}}</p>
+        </div>
+      </div>
+      <div class="tip">{{titleTop}}</div>
+      <div class="menu">
+        <div class="itembox" @click="chageMenu(1)">
+          <p :class="menu == 1 ? 'active' : ''">会议预告</p>
+          <span v-if="menu == 1"></span>
+        </div>
+        <div class="itembox" @click="chageMenu(2)">
+          <p :class="menu == 2 ? 'active' : ''">会议签到</p>
+          <span v-if="menu == 2"></span>
+        </div>
+        <div class="itembox" @click="chageMenu(3)">
+          <p :class="menu == 3 ? 'active' : ''">往期会议</p>
+          <span v-if="menu == 3"></span>
+        </div>
+      </div>
+    </div>
+    <!-- 会议预告 -->
+    <div class="announcement" v-if="menu == 1">
+      <div v-if="meetinglist[0]">
+        <ul>
+          <li v-for="(item, index) in meetinglist" :key="index">
+            <div class="titbox">
+              <span>与我相关</span>
+              <p @click="toNew(item.meeting_id)">查看人员</p>
+            </div>
+            <div class="content">
+              <h6>{{item.title}}</h6>
+              <span>
+                主持人员：
+                <p>{{item.host}}</p>
+              </span>
+              <span>
+                打卡时间：
+                <p class="color2">{{item.signIn_start_time}}~{{item.signIn_end_time}}</p>
+              </span>
+              <span>
+                会议地点：
+                <p>{{item.address}}</p>
+              </span>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div v-if="!meetinglist[0]" style="text-align:center">
+        <img src="../../assets/img/study/nomeetting.png" alt />
+      </div>
+    </div>
+    <!-- 会议签到 -->
+    <div class="signin" v-if="menu == 2">
+      <!-- 有会议 -->
+      <div class="meetings">
+        <div class="titbox">
+          <span>{{address}}</span>
+        </div>
+        <!-- 地图容器 -->
+        <div class="mapbox">
+          <baidu-map
+            style="width:100%;height:100%;"
+            :center="center"
+            :zoom="zoom"
+            @ready="handler"
+            :scroll-wheel-zoom="true"
+          >
+            <bm-geolocation
+              anchor="BMAP_ANCHOR_BOTTOM_RIGHT"
+              :showAddressBar="false"
+              :autoLocation="false"
+            ></bm-geolocation>
+          </baidu-map>
+        </div>
+        <div class="titbox" v-if="meet">
+          <span>与我相关</span>
+          <p v-if="this.check==1">正在签到</p>
+          <p v-if="this.check==2">已签到</p>
+        </div>
+        <div class="content" v-if="meet">
+          <h6>{{meet.title}}</h6>
+          <span>
+            参与人员：
+            <router-link to="/checkInStaff.html">
+              <p class="color2">点击查看</p>
+            </router-link>
+          </span>
+          <!-- <span>
+            打卡时间：
+            <p>2018/12/ 09:00~10:00</p>
+          </span>
+          <span>
+            会议地点：
+            <p>观音桥大融城</p>
+          </span>-->
+        </div>
+      </div>
+      <!-- 没有会议 -->
+      <div class="noMeetings" v-if="meet.length==0">
+        <div class="titbox">
+          <p>暂无会议</p>
+        </div>
+        <!-- <div class="noImg">
+          <img src alt srcset />
+        </div>-->
+      </div>
+      <!-- v-if="nowList.length!==0" -->
+      <!-- 打卡按钮 -->
+      <div class="clock" @click="checkin(meet.meeting_id)">
+        <div class="bnt">打卡</div>
+      </div>
+    </div>
+    <!-- 晚期会议 -->
+    <div class="lateMeeting" v-if="menu == 3">
+      <ul>
+        <li v-for="(item, index) in oldmeeting" :key="index">
+          <div class="titbox">
+            <span>与我不相关</span>
+            <p @click="topeople(item.meeting_id)">参会人员</p>
+          </div>
+          <div class="content">
+            <h6>{{item.title}}</h6>
+            <span>
+              主持人员：
+              <p>{{item.host}}</p>
+            </span>
+            <span>
+              打卡时间：
+              <p>{{item.signIn_start_time}}-{{item.signIn_end_time}}</p>
+            </span>
+            <span>
+              会议地点：
+              <p>{{item.address}}</p>
+            </span>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</template>
+<script>
+import MyHeader from "@/components/public/MyHeader";
+import { getMeeting, checkMeeting, checkin } from "@/apis";
+
+export default {
+  name: "threeSessions",
+  components: {
+    MyHeader
+  },
+  data() {
+    return {
+      menu: 1, //1为会议预告，2为会议签到，3为晚期会议
+      date: "", //当前年于日
+      week: "", //当前星期几
+      time: "", //当前时分秒
+      meetinglist: [], //会议预告数据列表
+      center: { lng: 0, lat: 0 },
+      titleTop: "", //标题
+      zoom: 15,
+      address: "",
+      oldmeeting: [], //往期会议数据列表
+      nowList: [], //是否有签到会议数据
+      meet: [], //会议签到的数据
+      check: 1 //控制重复签到问题1未签到2已签到
+    };
+  },
+  methods: {
+    chageMenu(e) {
+      this.menu = e;
+    },
+    //获取当前年于日
+    gettime() {
+      //获取当前年月日
+      var date = new Date();
+      var year = date.getFullYear();
+      var month = date.getMonth() + 1;
+      var day = date.getDate();
+      var week = date.getDay();
+      var hour = date.getHours(); //得到小时
+      var minu = date.getMinutes(); //得到分钟
+      var sec = date.getSeconds(); //得到秒
+      if (month < 10) {
+        month = "0" + month;
+      }
+      if (day < 10) {
+        day = "0" + day;
+      }
+      if (hour < 10) hour = "0" + hour;
+      if (minu < 10) minu = "0" + minu;
+      if (sec < 10) sec = "0" + sec;
+      var newweek = "星期" + "日一二三四五六".charAt(week);
+      var nowDate = year + "-" + month + "-" + day;
+      var time = hour + ":" + minu + ":" + sec;
+      (this.date = nowDate), (this.week = newweek), (this.time = time);
+    },
+    //获取会议预告
+    getList() {
+      getMeeting({
+        data: {
+          getNew: true,
+          app: true
+        },
+        currentObject: this
+      }).then(res => {
+        if (res.status == 200) {
+          this.meetinglist = res.data.list;
+        } else {
+          this.meetinglist = [];
+        }
+      });
+    },
+    //获取地图定位
+    handler({ BMap, map }) {
+      let _this = this; // 设置一个临时变量指向vue实例，因为在百度地图回调里使用this，指向的不是vue实例；
+      var geolocation = new BMap.Geolocation();
+      geolocation.getCurrentPosition(
+        function(r) {
+          if (this.getStatus() == BMAP_STATUS_SUCCESS) {
+            var mk = new BMap.Marker(r.point);
+            map.addOverlay(mk);
+            map.panTo(r.point);
+            // 创建地理编码实例
+            var myGeo = new BMap.Geocoder();
+            // 根据坐标得到地址描述
+            myGeo.getLocation(
+              new BMap.Point(r.point.lng, r.point.lat),
+              function(result) {
+                if (result) {
+                  _this.address = result.address;
+                }
+              }
+            );
+          } else {
+            alert("failed" + this.getStatus());
+          }
+        },
+        { enableHighAccuracy: true }
+      );
+    },
+    //获取是否有签到会议
+    getnow() {
+      checkMeeting({}).then(res => {
+        if (res.status == 200) {
+          this.titleTop = res.data.msg;
+          this.meet = res.data[0];
+        } else {
+          this.titleTop = res.data.msg;
+          this.meet = "";
+        }
+      });
+    },
+    //获取往期会议
+    getOldmeeting() {
+      getMeeting({
+        data: {
+          getOld: true,
+          app: true
+        },
+        currentObject: this
+      }).then(res => {
+        if (res.status == 200) {
+          this.oldmeeting = res.data.list;
+        } else {
+          this.meetinglist = [];
+        }
+      });
+    },
+    //参会人员跳转
+    topeople(id) {
+      this.$router.push({
+        path: "/advanced.html",
+        query: {
+          id: id
+        }
+      });
+    },
+    //会议预告参会人员跳转
+    toNew(id) {
+      this.$router.push({
+        path: "/attendees.html",
+        query: {
+          id: id
+        }
+      });
+    },
+    // 打卡签到
+    checkin(id) {
+      checkin({
+        data: {
+          meeting_id: id,
+          status: "已签到",
+          address: this.address
+        },
+        currentObject: this
+      }).then(res => {
+        if (res.status == 200) {
+          if (this.check == 1) {
+            this.GToast({ message: "签到成功" });
+            this.check = 2;
+          } else {
+            this.GToast({ message: "请勿重复签到" });
+          }
+        } else {
+          this.GToast({ message: "已签到" });
+        }
+      });
+    }
+  },
+  mounted() {},
+
+  created() {
+    this.getList();
+    this.gettime();
+    this.getOldmeeting();
+    this.getnow();
+  }
+};
+</script>
+<style lang="stylus" scoped>
+.threeSessions {
+  padding-top: func(44);
+  min-height: 100vh;
+  background: #E5E5E5;
+
+  .topbox {
+    width: 100%;
+    height: func(211);
+    background-image: url('../../assets/img/study/theremeetbackground.png');
+    padding-top: func(16);
+    text-align: center;
+    position: relative;
+
+    .date {
+      color: #444444;
+      font-size: func(14);
+    }
+
+    .day {
+      color: #444444;
+      font-size: func(14);
+      margin-top: func(14);
+    }
+
+    .timebox {
+      width: 100%;
+      text-align: center;
+
+      .time {
+        width: func(162);
+        height: func(40);
+        position: relative;
+        display: inline-block;
+        margin-top: func(14);
+
+        span {
+          display: block;
+          width: 100%;
+          height: 100%;
+          background: #ffffff;
+          opacity: 0.5;
+          position: absolute;
+          top: 0;
+          left: 0;
+        }
+
+        p {
+          width: func(162);
+          line-height: func(40);
+          text-align: center;
+          color: #ffffff;
+          font-size: func(24);
+          font-weight: bold;
+        }
+      }
+    }
+
+    .tip {
+      width: 100%;
+      text-align: center;
+      margin-top: func(20);
+      color: #444444;
+      font-size: func(14);
+    }
+
+    .menu {
+      width: 100%;
+      height: func(45);
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      display: flex;
+
+      .itembox {
+        width: 34%;
+        text-align: center;
+        position: relative;
+
+        p {
+          line-height: func(45);
+          color: #ffffff;
+          font-size: func(14);
+          text-align: center;
+          width: 100%;
+          display: block;
+        }
+
+        p.active {
+          font-weight: bold;
+        }
+
+        span {
+          display: block;
+          width: func(20);
+          height: func(3);
+          background: #ffffff;
+          border-radius: func(2);
+          box-shadow: 0px 0px 4px #FFFFFF;
+          position: absolute;
+          bottom: func(6);
+          left: 0;
+          right: 0;
+          margin: auto;
+        }
+      }
+    }
+  }
+
+  .announcement, .lateMeeting {
+    ul {
+      li {
+        min-height: func(173);
+        background: #ffffff;
+        margin-top: func(12);
+        padding-left: func(15);
+        box-sizing: border-box;
+        box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.1);
+
+        .titbox {
+          width: 100%;
+          box-sizing: border-box;
+          padding-right: func(16);
+          height: func(45);
+          border-bottom: 1px solid #DADADA;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          span {
+            color: #444444;
+            font-size: func(14);
+            background: url('../../assets/logo.png') left no-repeat;
+            background-size: func(20);
+            padding-left: func(32);
+          }
+
+          p {
+            color: #6CB127;
+            font-size: func(14);
+          }
+        }
+
+        .content {
+          padding: func(15) 0;
+          padding-right: func(15);
+          padding-bottom: func(3);
+          box-sizing: border-box;
+
+          h6 {
+            color: #444444;
+            font-size: func(14);
+            display: block;
+            width: 100%;
+            margin-bottom: func(5);
+          }
+
+          span {
+            width: 100%;
+            display: block;
+            margin-bottom: func(5);
+            font-size: func(14);
+            color: #8A8A8A;
+            display: flex;
+
+            p {
+              color: #444444;
+            }
+
+            p.color2 {
+              color: #6CB127;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .signin {
+    box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.1);
+
+    .titbox {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0 func(15);
+      height: func(45);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #DADADA;
+      margin-top: func(12);
+      background: #ffffff;
+
+      span {
+        color: #444444;
+        font-size: func(14);
+        background: url('../../assets/logo.png') left no-repeat;
+        background-size: func(20);
+        padding-left: func(32);
+        nLine(1);
+      }
+
+      p {
+        color: #6CB127;
+        font-size: func(14);
+      }
+    }
+
+    .mapbox {
+      width: 100%;
+      height: func(264);
+      background: #f2f2f2;
+    }
+
+    .content {
+      padding: func(15);
+      padding-right: func(15);
+      padding-bottom: func(3);
+      box-sizing: border-box;
+      background: #ffffff;
+
+      h6 {
+        color: #444444;
+        font-size: func(14);
+        display: block;
+        width: 100%;
+        margin-bottom: func(5);
+      }
+
+      span {
+        width: 100%;
+        display: block;
+        margin-bottom: func(5);
+        font-size: func(14);
+        color: #8A8A8A;
+        display: flex;
+
+        p {
+          color: #444444;
+        }
+
+        p.color2 {
+          color: #6CB127;
+        }
+      }
+    }
+
+    .noMeetings {
+      background: #ffffff;
+      margin-top: func(12);
+      margin-bottom: func(12);
+
+      .noImg {
+        width: 100%;
+        height: func(243);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        img {
+          width: func(162);
+          height: func(155);
+        }
+      }
+    }
+
+    .clock {
+      width: 100%;
+      margin-top: func(30);
+      display: flex;
+      justify-content: center;
+      padding-bottom: func(30);
+
+      .bnt {
+        width: func(54);
+        height: func(54);
+        background: #ffffff;
+        border: func(5) solid #6CB127;
+        box-sizing: border-box;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: func(14);
+        font-weight: 500;
+      }
+    }
+  }
+}
+</style>

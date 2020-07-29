@@ -1,0 +1,312 @@
+<template>
+    <div id="Disaster">
+        <MyHeader :title="'灾情上报'" :color="false"/>
+        <Lines />
+        <div class="form">
+            <div class="item">
+                <p>
+                    <i>*</i>
+                    <span>事件标题</span>
+                </p>
+                <input type="text" v-model="disaster_title">
+                <i class="iconfont">&#xe636;</i>
+            </div>
+            <div class="item">
+                <p>
+                    <i>*</i>
+                    <span>联系电话</span>
+                </p>
+                <input type="text" v-model="tel">
+                <i class="iconfont">&#xe636;</i>
+            </div>
+            <div class="item">
+                <p>
+                    <i>*</i>
+                    <span>所在位置</span>
+                </p>
+                <input type="text" v-model="address">
+                <i class="iconfont">&#xe636;</i>
+            </div>
+            <div class="item">
+                <p>
+                    <i>*</i>
+                    <span>灾情类型</span>
+                </p>
+                <input type="text" disabled :value="type?type.dictItemName:'' ">
+                <i class="iconfont" @click="show = true ">&#xe636;</i>
+            </div>
+        </div>
+        <Lines />
+        <div class="item">
+            <p>
+                <i>*</i>
+                <span>详细描述</span>
+            </p>
+            <input type="text" disabled>
+        </div>
+        <textarea placeholder="请输入详细说明" v-model="disaster_content"/>
+        <Lines />
+        <div class="item">
+            <p>
+                <i>*</i>
+                <span>图片上传</span>
+            </p>
+            <input type="text" disabled>
+        </div>
+        <Uploader v-model="fileList"  :after-read="afterRead" class="IUpLoader" :max-count="3"  @delete="deleteImg"/>
+        <div class="button" @click="updateDisaster">立即提交</div>
+
+        <Popup
+                v-model="show"
+                position="bottom"
+                :style="{ height: '40%' }"
+        >
+            <Picker
+                    show-toolbar
+                    :columns="columns"
+                    @cancel="onCancel"
+                    @confirm="onConfirm"
+                    value-key="dictItemName"
+            />
+        </Popup>
+    </div>
+</template>
+
+<script>
+    import MyHeader from "../../components/public/MyHeader";
+    import Lines from "../../components/public/Lines";
+    import { Uploader , Popup , Picker } from "vant";
+    import { DisasterList , upImage , updateDisaster} from "../../apis"
+    export default {
+        name: "Disaster",
+        data() {
+            return {
+                fileList: [],
+                disaster_title:"",//上报标题
+                disaster_content:"", //上报内容
+                disaster_pic:[], //灾情图片
+                address:"",//详细地址
+                type:null,//灾情类型
+                dis_id:-1,//灾情id
+                tel:"" ,//联系电话
+                show: false,
+                columns: []
+
+            }
+        },
+        methods: {
+            afterRead(file) {
+                upImage(file.file).then(msg => {
+                    if(~~msg.statusCode === 200 && ~~msg.errno === 0){
+                        msg = msg.data[0];
+                        this.disaster_pic.push(msg);
+                    }else {
+                        this.fileList.pop();
+                        this.GToast({message:" 上传图片失败"})
+                    }
+                }).catch(err => {
+                    this.GToast({message:" 网络错误"})
+                })
+            },
+            onConfirm(value) {
+                this.type = value;
+                this.show = false;
+            },
+            onCancel() {
+                this.show = false;
+            },
+            deleteImg(file , current){
+                const index = current.index;
+                this.disaster_pic =  this.disaster_pic.filter((i,j) => j !== index);
+            },
+            //提交
+            updateDisaster(){
+                const isCorrect =  this.judge();
+                const disaster_pic = this.disaster_pic.join(",");
+                if(isCorrect){
+                    updateDisaster({
+                        data:{
+                            disaster_title:this.disaster_title,//标题
+                            disaster_content:this.disaster_content,//再请描述
+                            address:this.address,//详细地址
+                            tel:this.tel,//电话（本来的参数列表没有，我上传是防止后台添加这个字段，前端还要修改）
+                            //dis_id:this.type.dis_id,
+                            emergency_level:this.type.dictItemName,
+                            disaster_pic
+                        }
+                    }).then( msg => {
+                        console.log(msg);
+                        if(~~msg.code === 0 && ~~msg.status === 200){
+                            this.GToast({message:"上报成功，即将返回上一级页面"});
+                            setTimeout(() => {
+                                this.$router.go(-1);
+                            },1000);
+                        }else {
+                            this.GToast({message:"上报失败"});
+                        }
+                    }).catch(err => {
+                        this.GToast({message:"网络错误"});
+                    })
+                }
+            },
+            //判断
+            judge(){
+                if(this.disaster_title.trim().length === 0){
+                    this.GToast({message:"请填写上报标题"});
+                    return false;
+                }
+                const regExp = /^1[3456789]\d{9}$/;
+                if(!regExp.test(this.tel.trim())){
+                    this.GToast({message:"请填写联系电话"});
+                    return false;
+                }
+                if(this.address.trim().length === 0){
+                    this.GToast({message:"请填写详细地址"});
+                    return false;
+                }
+                if(this.type === null){
+                    this.GToast({message:"请选择灾情类型"});
+                    return false;
+                }
+                if(this.disaster_content.trim().length === 0){
+                    this.GToast({message:"请填写详细说明"});
+                    return false;
+                }
+                if(this.disaster_pic.length === 0){
+                    this.GToast({message:"至少上传一张图片"});
+                    return false;
+                }
+
+                return true;
+            }
+        },
+        components: {
+            MyHeader,
+            Uploader,
+            Lines,
+            Popup,
+            Picker
+        },
+        created() {
+            DisasterList({currentObject:this}).then(msg => {
+                if(~~msg.code === 200 ){
+                    msg = msg.data;
+                    this.columns = msg;
+                }
+            })
+        },
+    }
+</script>
+
+<style scoped lang="stylus">
+#Disaster {
+    width 100%
+    min-height 100vh
+    box-sizing border-box
+    padding-top: func(44)
+    > .form {
+        width 100%
+        box-sizing border-box
+        padding 0 func(15)
+        > .item {
+            width 100%
+            height func(44)
+            display flex
+            align-items center
+            justify-content space-between
+            border-bottom func(1) solid #f5f5f5
+            > input {
+                flex 1
+                border 0
+                outline 0
+                background-color: transparent
+                text-align right
+                box-sizing border-box
+                color #BFBFBF
+                padding 0 func(15)
+                &::placeholder{
+                    color #BFBFBF
+                }
+            }
+            > i {
+                margin-top: func(4)
+                color #BFBFBF
+            }
+            > p {
+                span {
+                    color #BFBFBF
+                }
+                i {
+                    color #f00
+                }
+            }
+
+        }
+    }
+    > .item {
+        width 100%
+        height func(44)
+        display flex
+        align-items center
+        padding 0 func(15)
+        justify-content space-between
+        box-sizing border-box
+        border-bottom func(1) solid #f5f5f5
+        > input {
+            flex 1
+            border 0
+            outline 0
+            background-color: transparent
+            text-align right
+            box-sizing border-box
+            color #BFBFBF
+            padding 0 func(15)
+            &::placeholder{
+                color #BFBFBF
+            }
+        }
+        > i {
+            margin-top: func(4)
+            color #BFBFBF
+        }
+        > p {
+            span {
+                color #BFBFBF
+            }
+            i {
+                color #f00
+            }
+        }
+
+    }
+    > textarea {
+        width: 100%
+        box-sizing border-box
+        padding:0 func(15)
+        color #BFBFBF
+        height: func(108)
+        resize none
+        border 0
+        outline 0
+        &::placeholder {
+            color #BFBFBF
+        }
+    }
+    > .button {
+        width func(258)
+        height func(44)
+        background-color: #6CB127
+        color #fff
+        font-size func(16)
+        display flex
+        align-items center
+        justify-content center
+        margin func(37) auto 0 auto
+    }
+    .IUpLoader {
+        width:100%
+        box-sizing border-box
+        padding 0 func(15)
+    }
+}
+</style>

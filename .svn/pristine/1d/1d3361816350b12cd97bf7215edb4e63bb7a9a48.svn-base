@@ -1,0 +1,61 @@
+<template>
+    <div class="monitor">
+        <MyHeader :title="'疫情监控'"/>
+        <div class="blackline"></div>
+        <ul class="listBox">
+            <li v-for="(item,index) in 6" :key="index" class="videoList">
+                <p>老地方快乐地方快乐十地方快乐十地方快乐十地方快乐十地方快乐十地方快乐十地方快乐十地方快乐十地方快乐十地方快乐十十分</p>
+                <img src="@/assets/img/partyBuild/partyBuild.png" alt="">
+            </li>
+        </ul>
+    </div>
+</template>
+<script>
+import MyHeader from "@/components/public/MyHeader";
+export default {
+    name: 'monitor',
+    components: {
+        MyHeader
+    },
+    data(){
+        return {
+            
+        }
+    },
+    methods: {
+       
+        
+    },
+    
+}
+</script>
+<style lang="stylus" scoped>
+.blackline{
+    margin-top func(44);
+    width 100%;
+    height func(1);
+    background #ccc;
+
+}
+.listBox{
+    padding 0 func(15);
+    >.videoList {
+        border-bottom 1px solid #ccc;
+        height func(73);
+        display flex;
+        align-items  center;
+        justify-content space-between;
+        >p{
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            width 80%;
+        }
+        >img{
+            width func(47);
+            height func(38);
+            display block;
+        }
+    }
+}
+</style>

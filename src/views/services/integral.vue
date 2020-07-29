@@ -1,0 +1,271 @@
+<template>
+  <div class="integral">
+    <MyHeader :title="'我的积分'" />
+    <div class="rankTop3">
+      <div class="userPic">
+        <div class="userinfo">
+          <img :src="userrankinfo.pic_id | formatImg" alt class="imgs" />
+          <div>
+            <span>我的排名</span>
+            <p>第{{rownumMe}}名</p>
+          </div>
+        </div>
+        <div>
+          <span>{{integralNumMe}}分</span>
+          <router-link to="/integralDetails.html">
+            <span>></span>
+          </router-link>
+        </div>
+      </div>
+      <div class="silver bg" v-if="lists[1]">
+        <img class="pai" src="@/assets/img/partyBuild/yinpai.png" alt />
+        <img class="txiang one" src="@/assets/img/partyBuild/partyBuild.png" alt />
+        <p class="rankname size">{{lists[1]?lists[1].mebName : ''}}</p>
+        <p class="rankscore size">{{lists[1]?lists[1].integralNum : 0}}</p>
+      </div>
+      <div class="gold bg" v-if="lists[0]">
+        <img class="pai" src="@/assets/img/partyBuild/jinpai.png" alt />
+        <img class="txiang two" src="@/assets/img/partyBuild/partyBuild.png" alt />
+        <p class="rankname size">{{lists[0]?lists[0].mebName : ''}}</p>
+        <p class="rankscore size">{{lists[0]?lists[0].integralNum : 0}}</p>
+      </div>
+      <div class="copper bg" v-if="lists[2]">
+        <img class="pai" src="@/assets/img/partyBuild/tongpai.png" alt />
+        <img class="txiang thr" src="@/assets/img/partyBuild/partyBuild.png" alt />
+        <p class="rankname size">{{lists[2] ? lists[2].mebName : ''}}</p>
+        <p class="rankscore size">{{lists[2] ? lists[2].integralNum : 0}}</p>
+      </div>
+    </div>
+    <div class="ranklist">
+      <div class="listone" v-for="(item, index) in list" :key="index">
+        <span class="ranknum">{{item.numTmp}}</span>
+        <span class="lxf">{{item.mebName}}</span>
+        <div class="listaa">
+          <span>{{item.orgName}}</span>
+          <span class="lspan">{{item.mebCard}}</span>
+        </div>
+        <span class="lastscore">{{item.integralNum}}分</span>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+import MyHeader from "@/components/public/MyHeader";
+import { getintegral, getUserPartInfo } from "@/apis";
+export default {
+  name: "intefral",
+  components: {
+    MyHeader
+  },
+  data() {
+    return {
+      userId: "", //用户id
+      userrankinfo: {}, //个人完整的积分信息
+      list: [], //完整的排名列表
+      lists: [], //去掉前三的排名列表
+      integralNumMe: 0, //积分
+      rownumMe: 0 //排名
+    };
+  },
+  methods: {
+    // 积分详情
+    // gradeMore(e){
+
+    // }
+    //获取列表
+    getList() {
+      getintegral({
+        url: "/exam/funcodeintegral/rankList",
+        data: {}
+      }).then(res => {
+        if (res.code == 200) {
+          this.integralNumMe = res.data.integralNumMe;
+          this.rownumMe = res.data.rownumMe;
+          let list = res.data.rankList.list;
+          if (list.length < 3) {
+            this.lists = list;
+          } else {
+            const temp = list.slice(0, 3);
+            this.lists = temp;
+            this.list = list || "";
+            const other = list.slice(3);
+            this.list = other;
+            let rank = 0;
+            for (let i = 0; i < other.length; i++) {
+              if (list[i].mebId == this.userId) {
+                this.userrankinfo = list[i];
+              }
+            }
+          }
+        } else {
+          this.GToast({ message: res.msg });
+        }
+      });
+    },
+    checkparts() {
+      checkpart({
+        url: "/fun/partyMember/getMemberByUserId"
+      }).then(res => {
+        if (!res.code == 200 && !res.data) {
+          this.GToast({ message: "当前用户未绑定党员信息" });
+        }
+      });
+    }
+  },
+  created() {
+    this.getList();
+    this.userId = this.$store.state.userInfo.userId;
+    this.checkparts();
+  }
+};
+</script>
+<style lang="stylus" scoped>
+.integral {
+  width: 100%;
+  padding-top: func(44);
+  background: #f5f5f5;
+
+  .rankTop3 {
+    width: 100%;
+    height: func(235);
+    background: linear-gradient(180deg, #6CB127 0%, #82D330 65.1%, rgba(127, 241, 73, 0.01) 100%);
+    padding: 0 func(20);
+    box-sizing: border-box;
+    position: relative;
+
+    .userPic {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-sizing: border-box;
+      padding-top: func(16);
+
+      p {
+        font-size: func(14);
+        color: #ffffff;
+      }
+
+      span {
+        font-size: func(14);
+        color: #ffffff;
+      }
+
+      .userinfo {
+        display: flex;
+        align-items: center;
+
+        img {
+          width: func(50);
+          height: func(50);
+          border-radius: 50%;
+          margin-right: func(12);
+        }
+      }
+    }
+
+    .silver {
+      width: func(110);
+      height: func(135);
+      left: func(20);
+    }
+
+    .bg {
+      position: absolute;
+      width: func(110);
+      bottom: 0;
+      background: linear-gradient(180deg, #fff 0%, #fff 66.15%, rgba(255, 255, 255, 0.77) 86.46%, rgba(255, 255, 255, 0.48) 100%);
+      box-shadow: inset 0px func(-6) func(4) rgba(160, 16, 16, 0.05);
+      border-radius: func(12) func(12) 0 0;
+      text-align: center;
+
+      .pai {
+        width: func(22);
+        height: func(22);
+        display: block;
+        margin: 0 auto;
+      }
+
+      .txiang {
+        width: func(50);
+        height: func(50);
+        border-radius: 50%;
+        display: block;
+        margin: 0 auto;
+      }
+
+      .one {
+        margin-bottom: func(12);
+      }
+
+      .two {
+        margin-bottom: func(16);
+      }
+
+      .thr {
+        margin-bottom: func(6);
+      }
+
+      p {
+        color: #444444;
+        font-size: func(14);
+      }
+
+      .rankscore {
+        color: #6CB127;
+      }
+    }
+
+    .gold {
+      width: func(110);
+      height: func(158);
+      left: func(133);
+    }
+
+    .copper {
+      width: func(110);
+      height: func(123);
+      right: func(19);
+    }
+  }
+
+  .ranklist {
+    width: 100%;
+    padding: func(28) func(15);
+    box-sizing: border-box;
+    background: #ffffff;
+
+    .listone {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      height: func(92);
+      border-bottom: func(1) solid #E5E5EA;
+
+      .listaa {
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+
+        .lspan {
+          color: #8A8A8A;
+        }
+      }
+
+      .ranknum {
+        color: #D33333;
+        font-size: func(14);
+      }
+
+      .lxf {
+        color: #444444;
+        font-size: func(14);
+      }
+
+      .lastscore {
+        color: #6CB127;
+      }
+    }
+  }
+}
+</style>

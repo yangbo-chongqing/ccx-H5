@@ -1,0 +1,249 @@
+<template>
+    <div id="Server">
+        <MyHeader :title="title"/>
+        <Lines />
+        <List :serverList="serverList"/>
+        <MyFooter :pageIndex="1" />
+    </div>
+</template>
+
+<script>
+    import MyHeader from "../components/public/MyHeader";
+    import Lines from "../components/public/Lines";
+    import List from "../components/Server/List";
+    import MyFooter from "../components/public/MyFooter";
+    export default {
+        name: "Server",
+        data() {
+            return {
+                title:"更多服务",
+                serverList:[
+                    {
+                        title:"智慧党建",
+                        list:[
+                            {
+                                title: "党建动态",
+                                img: baseImgUrl + "partydynamics.png",
+                                pageRouter: "/partyBuild.html",
+                                isLogin: true
+                            },
+                            {
+                                title:"党员学习",
+                                img:baseImgUrl + "elearning.png",
+                                pageRouter:"/member.html",
+                                isLogin:true,
+                                isMember:true
+                            },
+                            {
+                                title:"组织建设",
+                                img: baseImgUrl + "organizationconstruction.png",
+                                pageRouter:"/OrgConstruction.html",
+                                isLogin:true,
+                                isMember:true
+                            },
+                            {
+                                title:"党员服务",
+                                img: baseImgUrl + "memberservice.png",
+                                pageRouter:"/dyfuwu.html",
+                                isLogin:true,
+                                isMember:true
+                            }
+                        ],
+                        titleImg: baseImgUrl + 'point.png'
+                    },
+                    {
+                        title:"精准扶贫",
+                        list:[
+                            {
+                                title:"扶贫动态",
+                                img:baseImgUrl + "povertyalleviation.png",
+                                pageRouter:"/poverty.html",
+                                isLogin:true
+                            },
+                            {
+                                title:"扶贫台账",
+                                img: baseImgUrl + "povertyalleviation2.png",
+                                pageRouter:"/povertyAccount.html",
+                                isLogin:true
+                            }
+                        ],
+                        titleImg: baseImgUrl + 'point.png'
+                    },
+                    {
+                        title:"乡村发展",
+                        list:[
+                            /*{
+                                title:"一村一品",
+                                img: baseImgUrl + "villageshop.png",
+                                pageRouter:"/shop",
+                                isLogin:true
+                            },*/
+                            {
+                                title:"最美乡村",
+                                img:baseImgUrl + "beautyvillage.png",
+                                pageRouter:"/BeautifulCountry.html",
+                                isLogin:true
+                            },
+                            {
+                                title:"VR展示",
+                                img: baseImgUrl + "ic_vr.png",
+                                pageRouter:"/vr.html",
+                                isLogin:true
+                            },
+                            {
+                                title:"人才兴村",
+                                img:  require("../assets/img/server/2.png"),
+                                pageRouter:"/Person.html",
+                                isLogin:true
+                            },
+                            {
+                                title:"产业富村",
+                                img: require("../assets/img/server/1.png"),
+                                pageRouter:"/estate.html",
+                                isLogin:true
+                            },
+                            {
+                                title:"文明乐村",
+                                img: require("../assets/img/server/3.png"),
+                                pageRouter:'/Civilization.html',
+                                isLogin:true
+                            },
+                            // {
+                            //     title:"产业富村",
+                            //     img: baseImgUrl + "deviceonline.png",
+                            //     pageRouter:'/estate.html',
+                            //     isLogin:true
+                            // }
+                            /*,
+                            {
+                                title:"文明乐村", //未写页面
+                                img: baseImgUrl + "deviceonline.png",
+                                pageRouter:'/Person.html',
+                                isLogin:true
+                            }*/
+                        ],
+                        titleImg: baseImgUrl + 'point.png'
+                    },
+                    {
+                        title:"便民服务",
+                        list:[
+                            {
+                                title:"办事指南",
+                                img: baseImgUrl + "conveniencequery.png",
+                                pageRouter:"/Guide.html",
+                                isLogin:true
+                            },
+                            {
+                                title:"事件代办",
+                                img:baseImgUrl + "workguide.png",
+                                pageRouter:"/ProxyThing.html",
+                                isLogin:true
+                            },
+                            {
+                                title:"诉求提交",
+                                img: baseImgUrl + "zzjs3.png",
+                                pageRouter:"/Appeal.html",
+                                isLogin:true
+                            },
+                            {
+                                title:"在线申报",
+                                img: baseImgUrl + "onlinesubmit.png",
+                                pageRouter:"/Declare.html",
+                                isLogin:true
+                            },
+                            {
+                                title:"结果查询",
+                                img: baseImgUrl +"resultquery.png",
+                                pageRouter:"/ResultSearch.html",
+                                isLogin:true
+                            },
+                            {
+                                title:"便民查询",
+                                img: baseImgUrl + "conveniencequery.png",
+                                pageRouter:"/SearchConvenience.html",
+                                isLogin:true
+                            }
+                        ],
+                        titleImg: baseImgUrl + 'point.png'
+                    },
+                    {
+                        title:"政务公开",
+                        list:[
+                            {
+                                title:"政务公开",
+                                img: baseImgUrl + "affairspublic.png",
+                                pageRouter:"/affairsOpen.html",
+                                isLogin:true
+                            },
+                            {
+                                title:"三治合一",
+                                img: baseImgUrl + "dyfc_2.png",
+                                pageRouter:"/Merge.html",
+                                isLogin:true
+                            }
+                        ],
+                        titleImg: baseImgUrl + 'point.png'
+                    },
+                    {
+                        title:"应急指挥",
+                        list:[
+                            {
+                                title:"平安家园",
+                                img: baseImgUrl + "safehome.png",
+                                pageRouter:"/Safe.html",
+                                isLogin:true
+                            },
+                            {
+                                title:"疫情监控",
+                                img: baseImgUrl + "videomonitor.png",
+                                pageRouter:'/monitor.html',
+                                isLogin:true
+                            },
+                            {
+                                title:"疫情大喇叭",
+                                img: baseImgUrl + "ic_broadcast.png",
+                                pageRouter:null,
+                                isLogin:true
+                            },
+                            {
+                                title:"疫情会议",
+                                img: baseImgUrl + "videoconferencing.png",
+                                pageRouter:null,
+                                isLogin:true
+                            }
+                        ],
+                        titleImg: baseImgUrl + 'point.png'
+                    },
+                    {
+                        title:"应急指挥",
+                        list:[
+                            {
+                                title:"物联网应用",
+                                img: baseImgUrl + "deviceonline.png",
+                                pageRouter:null,
+                                isLogin:true
+                            }
+                        ],
+                        titleImg: baseImgUrl + 'point.png'
+                    },
+                ]
+            }
+        },
+        components: {
+            MyHeader,
+            Lines,
+            List,
+            MyFooter
+        }
+    }
+</script>
+
+<style scoped lang="stylus">
+#Server {
+    width:100%
+    min-height 100vh
+    box-sizing border-box
+    padding-bottom func(49)
+    padding-top 2rem
+}
+</style>

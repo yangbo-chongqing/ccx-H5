@@ -1,0 +1,81 @@
+<template>
+    <div class="poDetails">
+        <MyHeader :title="'民意详情'"/>
+        <div class="title">
+            区委常委、政法委书记杨邦维率队调研井口镇、石井坡街道基层社会治理工作
+        </div>
+        <div class="messBox">
+            <div class="headbox"><img src="@/assets/logo.png" alt="" srcset=""></div>
+            <div class="txt">
+                <span>张三丰</span>
+                <p>2019/12/21 11:10</p>
+            </div>
+            <div class="num"><p>212</p><span>次浏览</span></div>
+        </div>
+        <div class="content" v-html="content"></div>
+    </div>
+</template>
+<script>
+import MyHeader from "@/components/public/MyHeader";
+import Lines from "@/components/public/Lines";
+export default {
+    name: 'release',
+    components: {
+        MyHeader,
+        Lines
+    },
+    data(){
+        return {
+            content: '<p>区委常委、政法委书记杨邦维率队调研井口镇、石井坡街道基层社会治理工作区委常委、政法委书记杨邦维率队调研井口镇、石井坡街道基层社会治理工作<p>'
+        }
+    }
+}
+</script>
+<style lang="stylus" scoped>
+.poDetails
+    padding func(15)
+    padding-top func(44)
+    .title
+        padding func(8) 0
+        color #444444
+        font-size func(14)
+    .messBox
+        width 100%
+        border-bottom 1px solid #F5F5F5
+        min-height func(44)
+        box-sizing border-box
+        padding func(19) 0
+        padding-top func(9)
+        position relative
+        display flex
+        .headbox
+            width func(44)
+            height func(44)
+            border-radius 50%
+            overflow hidden
+            display flex
+            align-items center
+            background #f2f2f2
+            margin-right func(12)
+            img     
+                width 100%
+        .txt
+            span 
+                font-size func(14)
+                color #444444
+            p 
+                font-size func(12)
+                color #999999
+        .num
+            position absolute
+            right 0
+            display flex
+            p 
+                font-size func(12)
+                color #D33333
+            span
+                font-size func(12)
+                color #999999
+    .content
+        padding func(12) 0
+</style>

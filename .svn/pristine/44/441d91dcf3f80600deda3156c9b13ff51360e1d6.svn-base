@@ -1,0 +1,32 @@
+<template>
+  <div id="app">
+    <transition data-wow-duration="0.5s" enter-active-class="wow bounceInLeft" leave-active-class="wow  bounceOutRight leave" >
+      <router-view class="animated" />
+    </transition>
+  </div>
+</template>
+
+<script>
+  import { WOW } from 'wowjs';
+  export default {
+    mounted() {
+      new WOW().init({live:false});
+    }
+  }
+</script>
+<style lang="stylus">
+@import "assets/css/init.css"
+@import "assets/css/icon.css"
+@import "assets/css/resetFont.styl"
+@import "~animate.css/animate.min.css"
+.leave {
+  position: absolute;
+}
+#app{
+  min-width 320px
+  width 15rem
+  margin: 0 auto
+  display block
+  box-sizing border-box
+}
+</style>

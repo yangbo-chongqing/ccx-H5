@@ -1,0 +1,297 @@
+  <template>
+  <div class="release">
+    <MyHeader :title="'发布'" />
+    <div class="topmess">
+      <div class="int">
+        <span>*</span>
+        <p>标题</p>
+        <input type="text" placeholder="请输入" v-model="title" />
+        <img class="arrow" src="../../assets/img/right.png" alt />
+      </div>
+      <div class="int">
+        <span>*</span>
+        <p>类型</p>
+        <input type="text" placeholder="请选择" disabled :value="type?type.dictItemName:'' " />
+        <img class="arrow" @click="show = true " src="../../assets/img/right.png" alt />
+      </div>
+      <!-- <div class="int">
+        <span>*</span>
+      <p>是否匿名</p>-->
+      <!-- <input type="text" placeholder="请选择" disabled="true"> -->
+      <!-- <van-radio-group v-model="radio">
+            <van-radio name="1">单选框 1</van-radio>
+            <van-radio name="2">单选框 2</van-radio>
+      </van-radio-group>-->
+      <!-- <div class="arrow"></div>
+      </div>-->
+    </div>
+    <Lines />
+    <div class="titBox">
+      <p>*</p>
+      <span>内容说明</span>
+    </div>
+    <div class="textareaBox">
+      <textarea rows="5" placeholder="请输入详细说明" v-model="detail"></textarea>
+    </div>
+    <!-- <van-radio-group v-model="radio" direction="horizontal">
+            <van-radio name="1" shape="square" checked-color="#07c160">单选框 1</van-radio>
+            <van-radio name="2" shape="square" checked-color="#07c160">单选框 2</van-radio>
+    </van-radio-group>-->
+    <Lines />
+    <!-- <div class="titBox">
+      <p>*</p>
+      <span>图片上传</span>
+    </div>
+    <div class="upImg">
+      <div class="imgbox">
+        <img src="@/assets/img/partyBuild/partyBuild.png" alt srcset />
+        <span></span>
+      </div>
+      <div class="add"></div>
+    </div>-->
+    <!-- 按钮 -->
+    <div class="btnBox">
+      <button class="btn" @click="release">发布</button>
+    </div>
+    <Popup v-model="show" position="bottom" :style="{ height: '40%' }">
+      <Picker
+        show-toolbar
+        :columns="columns"
+        @cancel="onCancel"
+        @confirm="onConfirm"
+        value-key="dictItemName"
+      />
+    </Popup>
+  </div>
+</template>
+<script>
+import MyHeader from "@/components/public/MyHeader";
+import Lines from "@/components/public/Lines";
+import { RadioGroup, Radio, Popup, Picker } from "vant";
+import { getType, updata } from "@/apis";
+
+export default {
+  name: "release",
+  components: {
+    MyHeader,
+    Lines,
+    Popup,
+    Picker
+  },
+  data() {
+    return {
+      type: null,
+      show: false,
+      columns: [],
+      title: "",
+      detail: ""
+    };
+  },
+  methods: {
+    getTypes() {
+      let data = {
+        dictType: "people_opinion_type"
+      };
+      getType({
+        data: data,
+        currentObject: this
+      }).then(res => {
+        if (res.code == 200) {
+          this.columns = res.data;
+        }
+      });
+    },
+    onConfirm(value) {
+      this.type = value;
+      this.show = false;
+    },
+    onCancel() {
+      this.show = false;
+    },
+    release() {
+      if (!this.title) {
+        this.GToast({ message: "请填写上报标题" });
+        return;
+      }
+      if (!this.type) {
+        this.GToast({ message: "请选择类型" });
+        return;
+      }
+      if (!this.detail) {
+        this.GToast({ message: "请输入详细说明" });
+        return;
+      }
+      let data = {
+        title: this.title,
+        content: this.detail,
+        type: this.type.dictItemCode
+      };
+      updata({
+        url: "/peopleOpinion/save",
+        data: data
+      }).then(res => {
+        if (res.code == 0) {
+          this.GToast({ message: "提交成功！" });
+          this.title = "";
+          this.detail = "";
+          this.type = "";
+        }
+      });
+    }
+  },
+  created() {
+    this.getTypes();
+  }
+};
+</script>
+<style lang="stylus" scoped>
+.release {
+  min-height: 100vh;
+  background: #f8f8f8;
+  padding-top: func(44);
+
+  .topmess {
+    box-sizing: border-box;
+    padding-left: func(15);
+    background: #ffffff;
+
+    .int {
+      width: 100%;
+      height: func(45);
+      border-bottom: 1px solid #F5F5F5;
+      position: relative;
+      box-sizing: border-box;
+      padding-left: func(8);
+      overflow: hidden;
+
+      span {
+        color: #D33333;
+        position: absolute;
+        left: 0;
+        top: func(10);
+      }
+
+      p {
+        line-height: func(44);
+        color: #BFBFBF;
+        font-size: func(14);
+        width: func(60);
+        text-align: justify;
+      }
+
+      p::after {
+        display: inline-block;
+        width: 100%;
+        content: '';
+        height: 0;
+      }
+
+      input {
+        width: func(220);
+        position: absolute;
+        top: 0;
+        right: func(35);
+        line-height: func(44);
+        text-align: right;
+        border: none;
+        font-size: func(14);
+        background: none;
+      }
+
+      input::placeholder {
+        color: #BFBFBF;
+      }
+
+      .arrow {
+        position: absolute;
+        right: func(5);
+        top: func(8);
+      }
+    }
+  }
+
+  .titBox {
+    display: flex;
+    padding: func(15);
+    background: #ffffff;
+
+    p {
+      font-size: func(14);
+      color: #D33333;
+    }
+
+    span {
+      font-size: func(14);
+      color: #BFBFBF;
+    }
+  }
+
+  .textareaBox {
+    background: #ffffff;
+    padding: 0 func(15);
+
+    textarea {
+      width: 100%;
+      font-size: func(14);
+      border: none;
+    }
+
+    textarea::placeholder {
+      color: #BFBFBF;
+    }
+  }
+
+  .upImg {
+    display: flex;
+    flex-wrap: wrap;
+    background: #ffffff;
+    padding: 0 func(15);
+    padding-bottom: func(15);
+
+    .imgbox {
+      width: func(88);
+      height: func(66);
+      position: relative;
+      margin-right: func(13);
+
+      img {
+        width: 100%;
+        height: 100%;
+      }
+
+      span {
+        display: block;
+        width: func(10);
+        height: func(10);
+        position: absolute;
+        top: func(-5);
+        right: func(-5);
+        background: #cccccc;
+        border-radius: 50%;
+        border: 1px solid #ffffff;
+      }
+    }
+
+    .add {
+      width: func(66);
+      height: func(66);
+      background: #F5F5F5;
+    }
+  }
+
+  .btnBox {
+    margin-top: func(90);
+    display: flex;
+    justify-content: center;
+
+    .btn {
+      width: func(258);
+      line-height: func(44);
+      text-align: center;
+      background: #6CB127;
+      color: #ffffff;
+      font-size: func(16);
+    }
+  }
+}
+</style>

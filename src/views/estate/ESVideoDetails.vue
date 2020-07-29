@@ -1,0 +1,266 @@
+<template>
+  <div id="ESVideoDetails">
+    <MyHeader title="农技服务视频" />
+    <!--视频-->
+    <div></div>
+    <video :src="videolist[0].videos" controls></video>
+    <div class="info">
+      <h6>{{videolist[0].title}}</h6>
+      <div>
+        <span>
+          <i class="iconfont">&#xe61b;</i>
+          {{videolist[0].comment_num}}
+        </span>
+        <span>
+          <i class="iconfont">&#xe606;</i>
+          {{videolist[0].read_count}}
+        </span>
+      </div>
+    </div>
+    <div class="line"></div>
+    <div class="commentTitle">
+      <img src="http://119.3.196.255:7604/images/iconPic/Frame 4.png" alt />
+      <span>全部评论</span>
+    </div>
+    <div class="commentItem" v-for="(item , index) in commentList" :key="index">
+      <div class="top">
+        <img :src="item.HeadPic | formatImg" />
+        <div>
+          <h4 v-text="item.UserNickName" />
+          <p v-text="item.create_time.slice(0,10)" />
+        </div>
+      </div>
+      <div class="content" v-text="item.comment_content" />
+    </div>
+    <div class="inputs">
+      <input type="text" placeholder="我也来说一句" v-model="comment_content" />
+      <div @click="updateComment">发送</div>
+    </div>
+  </div>
+</template>
+
+<script>
+import MyHeader from "../../components/public/MyHeader";
+import { exComment, updateComment, getEsVideo } from "../../apis";
+
+export default {
+  name: "ESVideoDetails.vue",
+  data() {
+    return {
+      commentList: [],
+      comment_content: "",
+      videolist: []
+    };
+  },
+  methods: {
+    //提交评论
+    async updateComment() {
+      const comment_content = this.comment_content.trim();
+      if (comment_content.length === 0) {
+        this.GToast({ message: "评论内容不能为空" });
+        return null;
+      }
+      const news_id = this.decodeBase64(this.$route.query).news_id;
+      const result = await updateComment({
+        data: { news_id, comment_content }
+      });
+      if (~~result.code === 1) {
+        this.GToast({ message: "评论成功" });
+        this.comment_content = "";
+        this.getComment(news_id);
+      } else {
+        this.GToast({ message: "网络错误" });
+      }
+    },
+    getComment(news_id) {
+      exComment({ data: { news_id } })
+        .then(msg => {
+          if (~~msg.code === 1) {
+            msg = msg.data.list;
+            this.commentList = msg;
+          } else {
+            this.GToast({ message: "获取失败" });
+          }
+        })
+        .catch(err => {
+          this.GToast({ message: "网络错误" });
+        });
+    },
+    getEsVideo(news_id) {
+      getEsVideo({ data: { news_id } }).then(msg => {
+        if (msg.code == 0 && msg.status == 200) {
+          this.videolist = msg.data;
+        }
+      });
+    }
+  },
+  components: {
+    MyHeader
+  },
+  created() {
+    const news_id = this.decodeBase64(this.$route.query).news_id;
+    this.getComment(news_id);
+    this.getEsVideo(news_id);
+  },
+  mounted() {},
+  filters: {},
+  computed: {},
+  watch: {}
+};
+</script>
+
+<style scoped lang="stylus">
+#ESVideoDetails {
+  width: 100%;
+  min-height: 100vh;
+  padding-top: func(44);
+  padding-bottom: func(44);
+  box-sizing: border-box;
+  position: relative;
+
+  > video {
+    width: 100%;
+    height: func(211);
+  }
+
+  > .info {
+    width: 100%;
+
+    > h6 {
+      width: 100%;
+      font-size: func(14);
+      line-height: 1.5;
+      box-sizing: border-box;
+      padding: 0 func(15);
+      font-weight: 400;
+      nLine();
+    }
+
+    > div {
+      width: 100%;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: func(15);
+
+      > span {
+        color: #D33333;
+
+        &:first-of-type {
+          margin-right: func(12);
+
+          > i {
+            color: #1AFA29;
+          }
+        }
+
+        &:last-of-type {
+          > i {
+            color: #CDCDCD;
+          }
+        }
+      }
+    }
+  }
+
+  > .line {
+    margin-top: func(15);
+    width: 100%;
+    height: func(8);
+    background-color: #f8f8f8;
+  }
+
+  > .commentTitle {
+    width: 100%;
+    height: func(44);
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 0 func(15);
+
+    > img {
+      width: func(24);
+      height: func(24);
+      margin-right: func(12);
+    }
+  }
+
+  > .commentItem {
+    width: 100%;
+    box-sizing: border-box;
+    padding: func(16) func(15) func(20) func(15);
+    border-bottom: func(1) solid #f8f8f8;
+
+    > .top {
+      width: 100%;
+      height: func(36);
+      display: flex;
+      align-items: center;
+
+      > img {
+        width: func(36);
+        height: func(36);
+        margin-right: func(12);
+        border-radius: 50%;
+      }
+
+      > div {
+        height: 100%;
+
+        > h4 {
+          font-size: func(14);
+          font-weight: 500;
+        }
+
+        > p {
+          font-size: func(12);
+          color: #8A8A8A;
+        }
+      }
+    }
+
+    > .content {
+      width: 100%;
+      box-sizing: border-box;
+      padding-left: func(48);
+      padding-top: func(16);
+      font-size: func(14);
+      color: #444;
+    }
+  }
+
+  > .inputs {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    height: func(44);
+    box-sizing: border-box;
+    padding: 0 func(15);
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+
+    > input {
+      width: func(303);
+      height: func(30);
+      background-color: #f5f5f5;
+      border: none;
+      outline: none;
+      box-sizing: border-box;
+      padding-left: func(15);
+    }
+
+    > div {
+      font-size: func(16);
+      color: #6CB127;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: func(5);
+    }
+  }
+}
+</style>

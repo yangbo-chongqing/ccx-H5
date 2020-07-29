@@ -1,0 +1,184 @@
+<template>
+    <div id="EstateMap">
+        <MyHeader title="产业地图"/>
+        <baidu-map class="bm-view" ak="2WCYGwx1p5aQ3u9k36ianNClEgGQb8dG"
+                   :center="center"
+                   :zoom="zoom"
+                   @ready="handler"
+                   :inertial-dragging="true"
+                   :pinch-to-zoom="true"
+                   :continuous-zoom="true"
+                   :scroll-wheel-zoom="true"
+                   @moving="syncCenterAndZoom"
+                   @moveend="syncCenterAndZoom"
+                   @zoomend="syncCenterAndZoom"
+        >
+            <bm-scale anchor="BMAP_ANCHOR_TOP_RIGHT" />
+            <bm-navigation anchor="BMAP_ANCHOR_TOP_RIGHT" />
+            <bm-map-type :map-types="['BMAP_NORMAL_MAP', 'BMAP_HYBRID_MAP']" anchor="BMAP_ANCHOR_TOP_LEFT" />
+            <bm-geolocation anchor="BMAP_ANCHOR_BOTTOM_RIGHT" :showAddressBar="true" :autoLocation="true" />
+            <bm-marker
+                    :position="{lng: item.longitude.slice(0,7), lat: item.latitude.slice(0,7)}"
+                    animation="BMAP_ANIMATION_BOUNCE"
+                    v-for="(item , index) in mapList"
+                    :key="index"
+                    :dragging="false"
+                    :icon="{url: 'http://www.mlxc365.com/images/sxccx/icon/mapPoint.png', size: {width: 36, height: 36}}"
+                    @click="handlerclick(item)"
+            >
+            </bm-marker>
+        </baidu-map>
+        <popup v-model="show" round position="bottom" class="showBottom">
+            <h6>
+                当前产业
+                <i class="iconfont" @click="show = false">&#xe607;</i>
+            </h6>
+            <p>
+                <span class="one" @click="goDetails">
+                    {{ showObj.enterprise_name }}
+                </span>
+                <img src="../../assets/img/map/map.png" alt="" @click="mapNavigation">
+            </p>
+        </popup>
+    </div>
+</template>
+
+<script>
+    import MyHeader from "../../components/public/MyHeader";
+    import {Dialog, Popup} from 'vant';
+    import { getMapList } from "../../apis";
+    import {BaiduMap , BmScale , BmNavigation , BmMapType , BmGeolocation , BmMarker ,BmLabel} from 'vue-baidu-map'
+    export default {
+        name: "EstateMap",
+        data() {
+            return {
+                center: {lng: 0, lat: 0},
+                zoom: 14,
+                mapList:[],
+                show:false,
+                showObj:{}
+            }
+        },
+        methods: {
+            syncCenterAndZoom (e) {
+                const {lng, lat} = e.target.getCenter()
+                this.center.lng = lng;
+                this.center.lat = lat;
+                this.zoom = e.target.getZoom();
+            },
+            handler(){
+                let geolocation = new BMap.Geolocation();
+                geolocation.getCurrentPosition(r=> {
+                    let lng=r.longitude;
+                    let lat=r.latitude;
+                    this.center.lng=lng;
+                    this.center.lat=lat;
+                },{enableHighAccuracy:true})
+            },
+            handlerclick(obj){
+                this.show = true;
+                this.showObj = obj
+            },
+            //去产业详情页面
+            goDetails(){
+                const ent_id = this.showObj.ent_id;
+                this.switchPage({pageRouter:"/estateMapDetails.html",params:{ent_id}})
+            },
+            mapNavigation(){
+                Dialog.confirm({
+                    title: '温馨提示',
+                    message: '是否确定要导航到？' + this.showObj.enterprise_name+ '（请确保目的地正确性）'
+                }).then(() => {
+                    window.location.href = `http://api.map.baidu.com/geocoder?address=${this.showObj.enterprise_name}&output=html&src=webapp.baidu.openAPIdemo`;
+                }).catch(() => {
+                    //防止控制台报错
+                });
+            }
+        },
+        components: {
+            MyHeader,
+            BaiduMap,
+            BmScale,
+            BmNavigation,
+            BmMapType,
+            BmGeolocation,
+            BmMarker,
+            BmLabel,
+            Popup
+        },
+        mounted() {
+            getMapList({currentObject:this}).then(msg => {
+                if(~~msg.code===0 && ~~msg.status === 200){
+                    this.mapList = msg.data.list;
+                }else {
+                    this.GToast({message: "获取数据失败"})
+                }
+            }).catch(err => {
+                this.GToast({message: "网络错误"})
+            })
+        },
+        filters: {},
+        computed: {},
+        watch: {}
+    }
+
+</script>
+
+<style scoped lang="stylus">
+    #EstateMap {
+        width 100%
+        height 100vh
+        box-sizing border-box
+        padding-top func(44)
+        line-height 1
+        margin: 0
+        padding-bottom 0
+        .bm-view {
+            width 100%
+            height 100vh
+        }
+        >.showBottom {
+            height func(143)
+            width 100%
+            box-sizing border-box
+            padding 0 func(15)
+            > h6 {
+                width 100%
+                height 50%
+                box-sizing border-box
+                display flex
+                align-items center
+                font-weight 400
+                color #8a8a8a
+                font-size func(16)
+                position relative
+                border-bottom func(1) solid #dadada
+                > i {
+                    position absolute
+                    top 50%
+                    right func(15)
+                    transform translateY(-50%)
+                    font-size func(20)
+                }
+            }
+            > p {
+                width 100%
+                height 50%
+                display flex
+                align-items center
+                box-sizing border-box
+                position relative
+                color #444
+                > img {
+                    position: absolute
+                    top 50%
+                    right func(15)
+                    transform translateY(-50%)
+                }
+                >span {
+                    width 80%
+                }
+            }
+        }
+    }
+</style>

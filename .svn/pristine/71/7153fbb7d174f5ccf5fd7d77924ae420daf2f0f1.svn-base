@@ -1,0 +1,64 @@
+<template>
+    <div class="MyTitle">
+        <div class="top">
+            <img src="../../../assets/logo.png" />
+            <p></p>
+            <span>{{ title }}</span>
+        </div>
+        <div class="bottom">
+            {{ info }}
+        </div>
+    </div>
+</template>
+
+<script>
+    export default {
+        name: "MyTitle",
+        props:{
+            title:{
+                type: String,
+                required: true
+            },
+            info:{
+                type: String,
+                required: false,
+                default: ""
+            }
+        }
+    }
+</script>
+
+<style scoped lang="stylus">
+.MyTitle {
+    width 100%
+    > .top {
+        width 100%
+        display flex
+        align-items center
+        position relative
+        box-sizing border-box
+        margin-top func(20)
+        margin-bottom func(15)
+        > img {
+            width func(8)
+            height func(16)
+            margin-right func(12)
+        }
+        > p {
+            flex 1
+            border-bottom func(1) dashed #E7C61E
+            height func(2)
+            //background: linear-gradient(90deg ,#fff 0 , #E7C61E 4%, #fff 8% , #e7c61e 12%)
+        }
+        > span {
+            position: absolute
+            top 50%
+            left func(20)
+            transform translateY(-50%)
+            background-color: #fff
+            padding-right func(20)
+        }
+    }
+
+}
+</style>

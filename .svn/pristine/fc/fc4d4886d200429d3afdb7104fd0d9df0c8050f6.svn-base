@@ -1,0 +1,420 @@
+<template>
+    <div id="povertyAccount">
+        <MyHeader :title="'扶贫台账'"/>
+        <!-- 下拉框 -->
+        <div class="section">
+            <div class="formwords" @click="showPopup">
+                <img src="http://www.mlxc365.com/images/sxccx/icon/ic_edit2.png" />
+            </div>
+            <div @click="showPopup" v-if="columns">{{columns[idx].areaName}}</div>
+            <Popup v-model="showPull" position="bottom">
+                <Picker show-toolbar title="请选择区域" value-key="areaName" :columns="columns" @cancel="onCancel" @confirm="onConfirm"/>
+            </Popup>
+            <i class="iconfont" @click="showPopup">&#xe672;</i>
+        </div>
+        <!-- 导航 -->
+        <div class="navBox">
+            <div class="oneNav">
+                <div class="one" @click="toNewdet">
+                    <div><img src="http://www.mlxc365.com/images/sxccx/icon/fptz1.png" /></div>
+                    <p class="onetexts">贫困户</p>
+                </div>
+                <div class="one aa" @click="todevelopment">
+                    <div><img src="http://www.mlxc365.com/images/sxccx/icon/fptz2.png" /></div>
+                    <p class="twotexts">发展现状</p>
+                </div>
+                <div class="one bb" @click="toArchives">
+                    <div><img src="http://www.mlxc365.com/images/sxccx/icon/fptz3.png" /></div>
+                    <p>驻村工作队</p>
+                </div>
+                <div class="one cc" @click="toStatistics">
+                    <div><img src="http://www.mlxc365.com/images/sxccx/icon/fptz4.png" /></div>
+                    <p>统计</p>
+                </div>
+            </div>
+        </div>
+        <!-- 内容 -->
+        <div class="content" v-if="list">
+            <div class="oneent">
+                <div><img src="http://www.mlxc365.com/images/sxccx/icon/ic_villagedetail_4.png" /></div>
+                <p><span>2019</span>年</p>
+                <div class="textgg"></div>
+            </div>
+            <div class="twoent">
+                <div>
+                    <p class="aa">{{list.name}}</p>
+                    <p class="bb">贫困村</p>
+                </div>
+                <div>
+                    <p class="aa">{{list.probability}}%</p>
+                    <p class="bb">贫困发生率</p>
+                </div>
+                <div>
+                    <p class="aa">{{list.spare2}}</p>
+                    <p class="bb">综合得分</p>
+                </div>
+            </div>
+        </div>
+        <!-- 更多信息 -->
+        <div class="box"></div>
+        <div class="information" v-if="list">
+            <div class="inNav">
+                <div><img src="http://www.mlxc365.com/images/sxccx/icon/edit.png" /></div>
+                <p>更多信息</p>
+            </div>
+            <div class="listBox">
+                <div class="listone">
+                    <div class="firtlist">
+                        <div class="imgbox">✦</div>
+                        <p>村负责人</p>
+                        <p class="lasttext">{{list.personInCharge}}</p>
+                    </div>
+                    <div class="firtlist">
+                        <div class="imgbox">✦</div>
+                        <p>是否整存推进</p>
+                        <p class="lasttext">{{list.village_advancement}}</p>
+                    </div>
+                    <div class="firtlist">
+                        <div class="imgbox">✦</div>
+                        <p>总户数</p>
+                        <p class="lasttext">{{list.houseCount}}</p>
+                    </div>
+                    <div class="firtlist">
+                        <div class="imgbox">✦</div>
+                        <p>行政区</p>
+                        <p class="lasttext">{{list.detailed_address}}</p>
+                    </div>
+                    <div class="firtlist">
+                        <div class="imgbox">✦</div>
+                        <p>联系方式</p>
+                        <p class="lasttext">{{list.chargeTel}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    import MyHeader from "../../components/public/MyHeader";
+    import { Toast,Picker,Popup } from 'vant';
+    import { getPull,getMore } from "../../apis";
+    export default {
+        name: "povertyAccount",
+        data() {
+            return {
+                columns:null,
+                idx:0,
+                showPull:false,
+                id:'',
+                deptId:'',
+                list:null,
+            }
+        },
+        methods: {
+            // 获取下拉列表
+            getPull(){
+                getPull({
+                    url:"/communityDetails/getList",
+                    data:{
+                        del_lag:0
+                    }
+                }).then(msg => {
+                    if(~~msg.code === 0){
+                        this.columns=msg.data;
+                        this.show()
+                        this.getMore()
+                    }else {
+                        //获取失败
+                        this.GToast({message:"获取失败"});
+                    }
+                })
+            },
+            // 获取更多信息
+            getMore(){
+                getMore({
+                    url:"/communityDetails/getOne",
+                    data:{
+                        del_lag:0,
+                        dept_id:this.deptId,
+                        a_id:this.id
+                    }
+                }).then(msg => {
+                    if(~~msg.code === 0){
+                        this.list=msg.data[0];
+                    }else {
+                        //获取失败
+                        this.GToast({message:"获取失败"});
+                    }
+                })
+            },
+            showPopup(){
+                this.showPull=true;
+            },
+            onCancel(){
+                this.showPull=false;
+            },
+            onConfirm(picker, value, index){
+                let columns=this.columns;
+                let idx=this.id=value;
+                this.id = columns[idx].a_id;
+                this.showPull=false;
+                this.getMore()
+            },
+            show(){
+                let columns=this.columns;
+                this.id = columns[0].a_id;
+            },
+            toNewdet(){
+                this.$router.push({path:'/households.html'});
+            },
+            todevelopment(){
+                let id=this.id;
+                this.$router.push({path:'/poveryDevelopment.html',query:{ id:id}});
+            },
+            toArchives(){
+                let id=this.id;
+                this.$router.push({path:'/resident.html',query:{ id:id}});
+            },
+            toStatistics(){
+                this.$router.push({path:'/statistics.html'});
+            }
+        },
+        components: {
+            MyHeader,
+            Picker,
+            Popup,
+        },
+        created() {
+            const userInfo = this.$store.state.userInfo;
+            let deptId = userInfo === null ? 651 : userInfo.deptId;
+            this.deptId=deptId;
+            this.getPull();
+            this.getMore();
+        },
+    }
+</script>
+
+<style scoped lang="stylus">
+#povertyAccount {
+    width 100%
+    min-height 100vh
+    box-sizing  border-box;
+    padding-top 2rem;
+    > img {
+        width:100%;
+    }
+    .section{
+        display: flex;
+        align-items: center;
+        padding:0 0.4rem;
+        height:1.5rem;
+        justify-content flex-start;
+        border-top 1px solid #f5f5f5;
+        >.formwords{
+            width:1rem;
+            height:1rem;
+            margin: 0 0.2rem 0 0;
+            vertical-align: middle;
+            >img{
+               width:100%;
+                height:100%;
+                display: block; 
+            }
+        }
+        >input{
+            border: none;
+            display: block;
+            text-align: right;
+            flex: 1;
+            padding-right: 0.5rem;
+            font-size: 0.6rem;
+        }
+        >span:first-child{
+            font-size:0.6rem;
+            color #BFBFBF;
+        }
+        >span:last-child{
+            font-size:0.7rem;
+        }
+        >select{
+            // width 4rem;
+            text-align: right;
+            font-size:0.6rem;
+            border none;
+            color: #6CB127;
+        }
+    }
+    .navBox{
+        width: 13.8rem;
+        height: 4.24rem;
+        border: 1px dotted #6CB127;
+        padding: 0.6rem 0.8rem 0.7rem 0.85rem;
+        box-sizing: border-box;
+        margin: 0.8rem 0.6rem 0 0.6rem;
+        .oneNav{
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            .one{
+                // height: 100%;
+                width: 3rem;
+                display: flex;
+                flex-direction: column;
+                position: relative;
+                align-items center;
+                p{
+                    color: #444444;
+                    font-size: 0.6rem;
+                    display: inline-block;
+                }
+            }
+            div div{
+                width: 1.8rem;
+                height: 1.8rem;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                margin-bottom: 0.5rem;
+                img{
+                    width: 100%;
+                    height: 100%;
+                }
+            }
+        }
+    }
+    .navBox .oneNav .one:nth-child(3){
+        width: 35%;
+    }
+    .navBox .oneNav .one:last-child{
+        width: 20%;
+    }
+    .content{
+        width: 100%;
+        margin-top: 0.6rem;
+        .oneent{
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            padding: 0.5rem 0 0 0.5rem;
+            box-sizing: border-box; 
+            .textgg{
+                width: 10rem;
+                height: 1px;
+                background: #6CB127;
+                margin-left: 0.7rem;
+            }
+            div{
+                width: 1rem;
+                height: 1rem;
+                display: flex;
+                align-items: center;
+                overflow: hidden;
+                margin-right: 0.6rem;
+                img{
+                    width: 100%;
+                    height: 100%;
+                }
+            }
+            p{
+                color: #8A8A8A;
+                font-size: 0.5rem;
+                span{
+                    color: #6CB127;
+                    font-size 0.5rem;
+                }
+            }
+        }
+        .twoent{
+            width: 100%;
+            margin: 1rem 0 1rem 0;
+            display: flex;
+            justify-content: space-between;
+            div{
+                width: 33.3%;
+                text-align: center;
+            }
+        }
+    }
+    .bb{
+        color: #444444;
+        font-size: 0.5rem;
+    }
+    .aa{
+        display: inline-block;
+        width: 100%;
+        color: #6CB127;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    .information{
+        width: 100%;
+        padding: 0.6rem 0.5rem; 
+        .inNav{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            div{
+                width: 0.8rem;
+                height: 0.8rem;
+                display: flex;
+                align-items: center;
+                overflow: hidden;
+                margin-right: 0.6rem;
+                img{
+                    width: 100%;
+                    height: 100%;
+                }
+            }
+            p{
+                color: #6CB127; 
+                font-size: 0.6rem;
+            }
+        }
+    }
+    .box{
+        width: 100%;
+        height: 0.4rem;
+        background: #e5e5e5;
+    }
+    .listBox{
+        width: 100%;
+        margin-top: 0.8rem;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        .listone{
+            width: 100%;
+            padding-left: 1.5rem;
+            .firtlist{
+                width: 100%;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                position: relative;
+                margin-bottom: 0.6rem;
+                .imgbox{
+                    width: 0.6rem;
+                    height: 0.6rem;
+                    overflow: hidden;
+                    display: flex;
+                    align-items: center;
+                    margin-right: 3px;
+                    color: #6CB127;
+                }
+                p{
+                    font-size: 0.5rem;
+                    color: #8A8A8A;   
+                }
+                .lasttext{
+                    color: #6CB127;
+                    font-size: 0.5rem;
+                    position: absolute;
+                    left: 4rem;
+                }
+            }
+        }
+    }
+}
+</style>

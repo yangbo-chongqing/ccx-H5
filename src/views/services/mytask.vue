@@ -1,0 +1,253 @@
+<template>
+  <div class="mytask">
+    <MyHeader :title="'我的任务'" />
+    <div class="topmenu">
+      <div @click="changeMenu(0)">
+        <p :class="menu == 0 ? 'active' : ''">待处理</p>
+        <span v-if="menu == 0" />
+      </div>
+      <div @click="changeMenu(2)">
+        <p :class="menu == 2 ? 'active' : ''">处理中</p>
+        <span v-if="menu == 2" />
+      </div>
+      <div @click="changeMenu(1)">
+        <p :class="menu == 1 ? 'active' : ''">已办结</p>
+        <span v-if="menu == 1" />
+      </div>
+    </div>
+    <Lines />
+    <!-- 待处理 -->
+    <div>
+      <div
+        class="ready"
+        v-for="(item, index) in list"
+        :key="index"
+        @click="toDetails(item.mission_id)"
+      >
+        <div class="claone">
+          <p class="one-p">{{ item.status | formatStatus}}-{{ item.mission_title }}</p>
+          <p class="two-p">
+            紧急程度：
+            <span>{{ item.missionLevelName }}</span>
+          </p>
+          <p class="thr-p">
+            事件类型：
+            <span>{{item.mission_type | formatMissionType}}</span>
+          </p>
+          <p class="fro-p">
+            提交时间：
+            <span>{{ item.create_time }}</span>
+          </p>
+        </div>
+        <div class="clatwo">
+          <!--处理中-->
+          <img src="../../assets/img/partyServices/clz.png" v-show="menu === 2" />
+          <!--未处理-->
+          <img src="../../assets/img/partyServices/wcl.png" v-show="menu === 0" />
+          <!--已完结-->
+          <img src="../../assets/img/partyServices/ycl.png" v-show="menu === 1" />
+        </div>
+      </div>
+    </div>
+    <Overlay :show="show" class="Overlay">
+      <Loading type="spinner" />
+    </Overlay>
+  </div>
+</template>
+<script>
+import MyHeader from "@/components/public/MyHeader";
+import NewsList from "@/components/public/NewsList";
+import Lines from "@/components/public/Lines";
+import { getMyTask } from "../../apis";
+import { Loading, Overlay } from "vant";
+export default {
+  name: "onlineLearning",
+  components: {
+    MyHeader,
+    NewsList,
+    Lines,
+    Loading,
+    Overlay
+  },
+  data() {
+    return {
+      menu: 0,
+      list: [],
+      show: false
+    };
+  },
+  methods: {
+    //切换
+    changeMenu(e) {
+      this.show = true;
+      this.menu = e;
+      //0:未接受,1:已完成,2:处理中
+      getMyTask({
+        data: {
+          status: e,
+          byMember: ""
+        },
+        currentObject: this
+      })
+        .then(msg => {
+          this.show = false;
+          if (~~msg.code === 0 && ~~msg.status === 200) {
+            msg = msg.data.list;
+            this.list = msg;
+          } else {
+            this.GToast({ message: "获取列表失败" });
+          }
+        })
+        .catch(err => {
+          this.GToast({ message: "网络错误" });
+        });
+    },
+    //跳转任务详情
+    toDetails(mission_id) {
+      this.switchPage({
+        pageRouter: "/taskDetails.html",
+        params: {
+          mission_id
+        }
+      });
+    }
+  },
+  created() {
+    this.changeMenu(0);
+  },
+  filters: {
+    formatStatus(status) {
+      //0:未接受,1:已完成,2:处理中
+
+      switch (~~status) {
+        case 0:
+          return "待处理";
+        case 1:
+          return "已完成";
+        default:
+          return "处理中";
+      }
+    },
+    formatMissionType(type) {
+      switch (~~type) {
+        case 1:
+          return "宣传活动";
+        case 2:
+          return "工作例会";
+        case 3:
+          return "寻访活动";
+        case 4:
+          return "群体活动";
+        default:
+          return "通知";
+      }
+    }
+  }
+};
+</script>
+<style lang="stylus" scoped>
+.mytask {
+  width: 100%;
+  padding-top: func(88);
+
+  .topmenu {
+    width: 100%;
+    height: func(44);
+    position: fixed;
+    top: func(44);
+    left: 0;
+    display: flex;
+    justify-content: space-between;
+    background: #ffffff;
+    z-index: 2;
+    margin-bottom: func(44);
+
+    div {
+      position: relative;
+      width: 50%;
+      text-align: center;
+
+      p {
+        font-size: func(14);
+        color: #8A8A8A;
+        line-height: func(44);
+      }
+
+      p.active {
+        color: #6CB127;
+      }
+
+      span {
+        width: func(20);
+        height: func(3);
+        background: #6CB127;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: func(6);
+        margin: auto;
+        box-shadow: 0 0 func(4) #6CB127;
+        border-radius: func(2);
+      }
+    }
+  }
+
+  .ready {
+    width: 100%;
+    background: #ffffff;
+    padding: func(16) func(15) func(20) func(20);
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: func(1) solid #e5e5ea;
+
+    .claone {
+      p {
+        margin-bottom: func(12);
+        font-size: func(14);
+      }
+
+      .one-p {
+        color: #444444;
+      }
+
+      .two-p {
+        color: #8A8A8A;
+
+        span {
+          color: #D33333;
+        }
+      }
+
+      .thr-p {
+        color: #8A8A8A;
+      }
+
+      .fro-p {
+        color: #8A8A8A;
+
+        span {
+          color: #444444;
+        }
+      }
+    }
+
+    .clatwo {
+      img {
+        width: func(44);
+        height: func(44);
+        border-radius: 50%;
+      }
+    }
+  }
+
+  .Overlay {
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+}
+</style>

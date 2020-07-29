@@ -1,0 +1,279 @@
+<template>
+  <div id="Appointment">
+    <MyHeader :title="'预约提交'" />
+    <div>
+      <div class="item">
+        <p>
+          <i style="padding-right:0.6rem">*</i>
+          <span class="fontcolor">用户姓名</span>
+        </p>
+        <input type="text" v-model="userName" />
+        <i class="iconfont">&#xe636;</i>
+      </div>
+      <div class="item">
+        <p>
+          <i style="padding-right:0.6rem">*</i>
+          <span class="fontcolor">联系电话</span>
+        </p>
+        <input type="text" v-model="userPhone" />
+        <i class="iconfont">&#xe636;</i>
+      </div>
+      <div class="item">
+        <p>
+          <i>*</i>
+        </p>
+        <Field
+          readonly
+          input-align="right"
+          clickable
+          label="预约时间"
+          placeholder="选择时间"
+          v-model="TimeValue"
+          @click="showTime = true"
+        />
+        <Popup v-model="showTime" position="bottom">
+          <DatetimePicker
+            type="datetime"
+            v-model="currentDate"
+            :min-date="minDate"
+            :max-date="maxDate"
+            @cancel="showTime = false"
+            @confirm="showTime = false"
+            @change="startTimeChange"
+          />
+        </Popup>
+        <i class="iconfont">&#xe636;</i>
+      </div>
+      <div class="item">
+        <p>
+          <i>*</i>
+          <span class="fontcolor">详细地址</span>
+        </p>
+        <input type="text" disabled />
+      </div>
+      <textarea class="txtarea" placeholder="请输入详细地址" v-model="userAddress" />
+      <Lines />
+      <div class="item">
+        <p>
+          <i>*</i>
+          <span class="fontcolor">详情描述</span>
+        </p>
+        <input type="text" disabled />
+      </div>
+      <textarea class="txtarea" placeholder="请输入详细说明" v-model="userContent" />
+      <div @click="upDataPerson" class="btn">提交</div>
+    </div>
+  </div>
+</template>
+
+<script>
+import MyHeader from "../../components/public/MyHeader";
+import Lines from "../../components/public/Lines";
+import { Toast, Picker, Field, Popup, DatetimePicker } from "vant";
+import { upDataPerson } from "@/apis";
+export default {
+  name: "Appointment",
+  data() {
+    return {
+      TimeValue: "",
+      showTime: false,
+      minDate: new Date(2000, 0, 1),
+      maxDate: new Date(2200, 10, 1),
+      currentDate: new Date(),
+      userName: "", //姓名
+      userPhone: "", //电话
+      userContent: "", //原因
+      userAddress: "" //地址
+    };
+  },
+  methods: {
+    startTimeChange(e) {
+      let endTimeArr = e.getValues(); //["2019", "03", "22", "17", "28"]
+      this.TimeValue = `${endTimeArr[0]}-${endTimeArr[1]}-${endTimeArr[2]} ${endTimeArr[3]}:${endTimeArr[4]}:00`;
+    },
+    upDataPerson() {
+      //验证
+      if (!this.userName.trim().length) {
+        this.GToast({ message: "请输入姓名" });
+        return false;
+      }
+      const regExp = /^1[345678]\d{9}$/;
+      if (!regExp.test(this.userPhone)) {
+        this.GToast({ message: "请正确输入手机号码" });
+        return false;
+      }
+      if (!this.TimeValue.trim().length) {
+        this.GToast({ message: "请选择时间" });
+        return false;
+      }
+      if (!this.userAddress.trim().length) {
+        this.GToast({ message: "请输入地址" });
+        return false;
+      }
+      if (!this.userContent.trim().length) {
+        this.GToast({ message: "请输入地址" });
+        return false;
+      }
+      upDataPerson({
+        url: "/expert/subscribe/insertAndUpdateSubscribe",
+        data: {
+          subscribe_name: this.userName,
+          subscribe_date: this.TimeValue,
+          subscribe_expert: this.$route.query.id
+        }
+      })
+        .then(msg => {
+          if (~~msg.code === 0 && ~~msg.status === 200) {
+            this.GToast({ message: msg.msg });
+            this.$router.go(-1);
+          } else {
+            this.GToast({ message: "提交失败" });
+          }
+        })
+        .catch(err => {
+          this.GToast({ message: "网络错误" });
+        });
+    }
+  },
+  components: {
+    MyHeader,
+    Picker,
+    Popup,
+    Field,
+    DatetimePicker,
+    Lines
+  },
+  created() {}
+};
+</script>
+
+<style scoped lang="stylus">
+#Appointment {
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding-top: 2rem;
+
+  > img {
+    width: 100%;
+  }
+
+  .item {
+    width: 100%;
+    height: func(44);
+    border-bottom: func(1) solid #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    > input {
+      flex: 1;
+      border: 0;
+      outline: 0;
+      background-color: transparent;
+      text-align: right;
+      box-sizing: border-box;
+      color: #BFBFBF;
+      padding: 0 func(15);
+
+      &::placeholder {
+        color: #BFBFBF;
+      }
+    }
+
+    > i {
+      margin-top: func(4);
+      color: #BFBFBF;
+    }
+
+    > p {
+      span {
+        color: #BFBFBF;
+      }
+
+      i {
+        color: #f00;
+      }
+    }
+  }
+
+  > .item {
+    width: 100%;
+    height: func(44);
+    display: flex;
+    align-items: center;
+    padding: 0 func(15);
+    justify-content: space-between;
+    box-sizing: border-box;
+    border-bottom: func(1) solid #f5f5f5;
+
+    > input {
+      flex: 1;
+      border: 0;
+      outline: 0;
+      background-color: transparent;
+      text-align: right;
+      box-sizing: border-box;
+      color: #BFBFBF;
+      padding: 0 func(15);
+
+      &::placeholder {
+        color: #BFBFBF;
+      }
+    }
+
+    > i {
+      margin-top: func(4);
+      color: #BFBFBF;
+    }
+
+    > p {
+      span {
+        color: #BFBFBF;
+      }
+
+      i {
+        color: #f00;
+      }
+    }
+  }
+
+  .txtarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 func(15);
+    color: #BFBFBF;
+    height: func(108);
+    resize: none;
+    border: 0;
+    outline: 0;
+
+    &::placeholder {
+      color: #BFBFBF;
+    }
+  }
+
+  .btn {
+    width: 10.84rem;
+    height: 1.84rem;
+    background: #6cb127;
+    margin: 2rem auto 0;
+    color: #fff;
+    font-size: 0.6rem;
+    text-align: center;
+    line-height: 1.84rem;
+  }
+}
+
+.fontcolor {
+  color: #323233 !important;
+}
+
+input {
+  color: #323233 !important;
+}
+
+textarea {
+  color: #323233 !important;
+}
+</style>

@@ -1,0 +1,197 @@
+<template>
+    <div class="detailsVer">
+        <MyHeader :title="'活动详情'"/>
+        <div class="title">
+            {{ obj.title }}
+        </div>
+        <div class="messBox">
+            <div class="headbox"><img src="@/assets/logo.png" alt="" srcset=""></div>
+            <div class="txt">
+                <span>{{ obj.CreateName }}</span>
+                <p>{{ obj.create_time | formatCurrentTime}}</p>
+            </div>
+            <div class="num"><p>{{obj.read_count}}</p><span>次浏览</span></div>
+        </div>
+        <!-- 活动信息 -->
+        <div class="activity">
+            <ul>
+                <li>
+                    <p>活动时间：</p>
+                    <p>{{ obj.start_time }} ~ {{obj.end_time}}</p>
+                </li>
+                <li>
+                    <p>活动地点：</p>
+                    <p>{{ obj.address }}</p>
+                </li>
+               <!-- <li>
+                    <p>所需人数：</p>
+                    <p>10人</p>
+                </li>-->
+                <!--<li>
+                    <p>报名人数：</p>
+                    <p>21人</p>
+                </li>-->
+                <!--<li>
+                    <p>服务时间：</p>
+                    <p>2.5 小时</p>
+                </li>-->
+                <li>
+                    <p>活动积分：</p>
+                    <span>{{ obj.integral }} 积分</span>
+                </li>
+            </ul>
+
+            <button class="btnB" @click="VSignIn" v-if="new Date(obj.start_time) < new Date() && new Date(obj.end_time) > new Date()">点击签到</button>
+            <button class="btnA" v-else>等待开始</button>
+        </div>
+        <!-- 内容 -->
+        <div class="content" v-html="obj.ac_content"></div>
+    </div>
+</template>
+<script>
+import MyHeader from "@/components/public/MyHeader";
+import Lines from "@/components/public/Lines";
+import { VSignIn , getVolDel } from "../../apis";
+export default {
+    name: 'detailsVer',
+    components: {
+        MyHeader,
+        Lines
+    },
+    data(){
+        return {
+            obj:{}
+        }
+    },
+    methods:{
+        VSignIn(){
+            //当前活动id
+            const activity_id  = this.obj.ac_id;
+            //活动类型（1为普通活动，2为志愿者活动，3党员活动）
+            const sign_up_type = 2;
+            VSignIn({
+                data:{
+                    activity_id,
+                    sign_up_type
+                }
+            }).then( msg => {
+                if(~~msg.status === 200){
+                    this.GToast({message:msg.msg});
+                    setTimeout(() =>{
+                        this.$router.go(-1);
+                    },1000);
+                }else {
+                    this.GToast({message:msg.msg});
+                }
+            }).catch(err => {
+                this.GToast({message:"网络错误"});
+            })
+        }
+    },
+    created() {
+        const obj = JSON.parse(window.sessionStorage.getItem("volunteerInfo"))
+        const data  = {
+            activity_id:obj.activity_id
+        }
+        getVolDel({data}).then(msg => {
+            if(~~msg.status === 200){
+                msg = msg.data;
+                this.obj = msg;
+            }else{
+                this.GToast({message:"获取失败"})
+            }
+        }).catch(err => {
+            this.GToast({message:"网络错误"})
+        })
+    },
+    filters:{
+        formatCurrentTime(time){
+            const now = new Date(time);
+            const fullYear = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const date = now.getDate();
+            return `${fullYear}年${month}月${date}日`;
+        }
+    }
+}
+</script>
+<style lang="stylus" scoped>
+.detailsVer
+    padding func(15)
+    padding-top func(44)
+    .title
+        padding func(8) 0
+        color #444444
+        font-size func(14)
+    .messBox
+        width 100%
+        border-bottom 1px solid #F5F5F5
+        min-height func(44)
+        box-sizing border-box
+        padding func(19) 0
+        padding-top func(9)
+        position relative
+        display flex
+        .headbox
+            width func(44)
+            height func(44)
+            border-radius 50%
+            overflow hidden
+            display flex
+            align-items center
+            background #f2f2f2
+            margin-right func(12)
+            img
+                width 100%
+        .txt
+            span
+                font-size func(14)
+                color #444444
+            p
+                font-size func(12)
+                color #999999
+        .num
+            position absolute
+            right 0
+            display flex
+            p
+                font-size func(12)
+                color #D33333
+            span
+                font-size func(12)
+                color #999999
+    .activity
+        padding-top func(15)
+        position relative
+        li
+            display flex
+            p
+                line-height func(30)
+                font-size func(14)
+                color #444444
+            span
+                line-height func(30)
+                font-size func(14)
+                color #444444
+                font-weight bold
+                background-size func(15)
+        button
+            background none
+            border none
+            text-align center
+            width func(90)
+            line-height func(36)
+            font-size func(14)
+            border-radius func(18)
+            position absolute
+            right 0
+            bottom 0
+        button.btnA
+            border 1px solid #6CB127
+            color #6CB127
+        button.btnB
+            color #ffffff
+            background #32E5F9
+    .content
+        padding func(12) 0
+</style>

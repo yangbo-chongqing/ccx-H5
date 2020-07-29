@@ -1,0 +1,373 @@
+<template>
+    <!--事件代办-->
+    <div id="ProxyThing">
+        <MyHeader :title="'事件代办'" :color="false"/>
+        <Lines />
+        <div class="form">
+            <div class="item">
+                <p>
+                    <i>*</i>
+                    <span>代办类型</span>
+                </p>
+                <input type="text" placeholder="请选择" disabled :value="type?type.type_name:''" >
+                <i class="iconfont" @click="showPicker(0)">&#xe636;</i>
+            </div>
+            <div class="item">
+                <p>
+                    <i>*</i>
+                    <span>代办事项</span>
+                </p>
+                <input type="text" placeholder="请选择" disabled :value="thing? thing.flow_name: ''">
+                <i class="iconfont" @click="showPicker(1)">&#xe636;</i>
+            </div>
+            <div class="item">
+                <p>
+                    <i>*</i>
+                    <span>代办人员</span>
+                </p>
+                <input type="text" placeholder="请输入您的姓名" v-model="userName">
+                <i class="iconfont">&#xe636;</i>
+            </div>
+            <div class="item">
+                <p>
+                    <i>*</i>
+                    <span>联系电话</span>
+                </p>
+                <input type="text" placeholder="请输入联系电话" v-model="userPhone">
+                <i class="iconfont">&#xe636;</i>
+            </div>
+            <div class="item">
+                <p class="captcha">
+                    <i>*</i>
+                    <span>验证码</span>
+                </p>
+                <input type="text" placeholder="请输入验证码"   v-model="captcha">
+                <button @click="getCaptcha" v-show="!this.timer">点击获取</button>
+                <button class="no" v-show="this.timer">{{ timeLeft }}后再次获取</button>
+            </div>
+        </div>
+        <Lines />
+        <div class="item">
+            <p>
+                <i>*</i>
+                <span>内容说明</span>
+            </p>
+            <input type="text" disabled>
+        </div>
+        <textarea placeholder="请输入详细说明" v-model="orderContent"/>
+        <div class="button" @click="upDataProxy">立即提交</div>
+        <Popup  v-model="show"
+                position="bottom"
+                :style="{ height: '50%' }">
+            <Picker
+                    show-toolbar
+                    :columns="columns"
+                    @cancel="onCancel"
+                    @confirm="onConfirm"
+                    value-key="showName"
+            ></Picker>
+        </Popup>
+    </div>
+</template>
+
+<script>
+    import MyHeader from "../../components/public/MyHeader";
+    import Lines from "../../components/public/Lines";
+    import {Popup , Picker , Toast} from "vant"
+    import {getGuideType , getGuideList , getCaptcha , upDataProxy} from "../../apis";
+    export default {
+        name: "ProxyThing",
+        data() {
+            return {
+                show: false,
+                columns: [],
+                type:null ,//代办类型
+                thing:null , //办理事项
+                userName:"",//办理人
+                userPhone:"",//办理电话
+                captcha:"",//用户输入验证码
+                Captcha:"",//系统返回验证码
+                orderContent:"",// 代办内容
+                flag: 0, //0表示获取的是办理类型 1便是hi获取的办理事项
+                timer:null,
+                timeLeft:0
+            }
+        },
+        methods: {
+            //确认摁钮
+            onConfirm(value) {
+                if(this.flag === 0){
+                    this.type = value;
+                }else {
+                    this.thing = value;
+                }
+                this.show = false
+            },
+            //取消摁钮
+            onCancel() {
+                this.show = false
+            },
+            //展示弹出层
+            showPicker(flag){
+                this.flag = flag;
+                if(flag === 0){
+                    //获取类型
+                    this.getGuideType();
+                }else {
+                    //获取事项
+                    this.getGuideList();
+                }
+            },
+            //获取办事指南类型
+            getGuideType(){
+                getGuideType({
+                    url:"/flowType/listByDept",
+                    currentObject: this,
+                    data:{
+                        deptId: this.$store.state.userInfo.deptId
+                    }
+                }).then(msg =>{
+                    if(~~msg.code === 200){
+                        this.show = true;
+                        msg.data.forEach(item => {
+                            item.showName = item.type_name
+                        })
+                        this.columns = msg.data
+                    }else {
+                        this.GToast({message:"网络错误"});
+                    }
+                }).catch(err => {
+                    Toast("网络错误");
+                })
+            },
+            //获取办理事项
+            getGuideList(){
+                if(this.type){
+                    getGuideList({
+                        url:"/flow/list",
+                        currentObject: this,
+                        data:{
+                            del_lag: 0,
+                            typeId: this.type.type_id
+                        }
+                    }).then(msg => {
+                        if(~~msg.code === 200){
+                            this.show = true
+                            msg = msg.data.list;
+                            msg.forEach(item => {
+                                item.showName = item.flow_name
+                            })
+                            this.columns = msg;
+                        }
+                    })
+                }else {
+                    this.GToast({message:"请先选择代办类型"});
+                }
+
+            },
+            //获取验证码
+            getCaptcha(){
+                const userPhone  = this.userPhone.trim();
+                const reg = /^1[3456789]\d{9}$/;
+                if(!reg.test(userPhone)){
+                    this.GToast({message:"请正确输入您的手机号码"});
+                    return false;
+                }
+                getCaptcha({data:{mobile:userPhone}}).then(msg => {
+
+                    if(~~msg.code === 0 && ~~msg.status === 200){
+                        this.GToast({message:msg.msg});
+                        this.Captcha = msg.captcha;
+                        this.timeLeft = 60
+                        this.timer =  setInterval(() => {
+                            if(this.timeLeft <= 0){
+                                clearInterval(this.timer)
+                                this.timer = null;
+                            }else {
+                                this.timeLeft--;
+                            }
+                        },1000)
+                    }else {
+                        this.GToast({message:msg.msg});
+                    }
+                }).catch(err => {
+                    this.GToast({message:"网络错误"});
+                })
+            },
+            //提交摁钮
+            upDataProxy(){
+                if(this.captcha != this.Captcha){
+                    this.GToast({message:"请正确输入验证码"});
+                    return false;
+                }
+                //验证
+                if(this.type === null){
+                    this.GToast({message:"请选择代办类型"});
+                    return false;
+                }
+                if(this.thing === null){
+                    this.GToast({message:"请选择代办事项"});
+                    return false;
+                }
+                if(!this.userName.trim().length){
+                    this.GToast({message:"请输入代办人员姓名"});
+                    return false;
+                }
+                const regExp = /^1[345678]\d{9}$/;
+                if(!regExp.test(this.userPhone)){
+                    this.GToast({message:"请正确输入手机号码"});
+                    return false;
+                }
+                if(!this.orderContent.trim().length){
+                    this.GToast({message:"请输入内容说明"});
+                    return false;
+                }
+                upDataProxy({
+                    url:"/flowOutline/save",
+                    data:{
+                        flowTypeId: this.type.type_id,
+                        flowId: this.thing.flow_id,
+                        orderContent: this.orderContent,
+                        orderUser: this.userName,
+                        orderPhone: this.userPhone
+                    }
+                }).then(msg => {
+                    if(~~msg.code === 200 && ~~msg.data.code === 200){
+                        this.GToast({message:msg.data.data});
+                        this.$router.go(-1);
+                    }else {
+                        this.GToast({message:"提交失败"});
+                    }
+                }).catch(err => {
+                    this.GToast({message:"网络错误"})
+                })
+            }
+        },
+        components: {
+            MyHeader,
+            Lines,
+            Popup,
+            Picker
+        },
+        created() {
+        },
+    }
+</script>
+
+<style scoped lang="stylus">
+#ProxyThing {
+    width 100%
+    box-sizing border-box
+    padding-top func(44)
+
+    > .form {
+        width 100%
+        box-sizing  border-box
+        padding 0 func(15)
+        > .item {
+            width 100%
+            height func(44)
+            border-bottom: func(1) solid #f5f5f5
+            display flex
+            align-items center
+            justify-content space-between
+            box-sizing border-box
+            > input {
+                flex 1
+                border 0
+                outline 0
+                background-color: transparent
+                text-align right
+                box-sizing border-box
+                color #BFBFBF
+                padding 0 func(15)
+                &::placeholder{
+                    color #BFBFBF
+                }
+            }
+            > i {
+                margin-top: func(4)
+                color #BFBFBF
+            }
+            > p {
+                span {
+                    color #BFBFBF
+                }
+                i {
+                    color #f00
+                }
+            }
+
+            > button {
+                background-color: transparent
+                padding-left: func(15);
+                border-left func(2) solid #6CB127
+                color #6CB127
+                min-width func(80)
+                &.no {
+                    color: #bfbfbf
+                }
+            }
+            >.captcha {
+                min-width func(50)
+            }
+        }
+    }
+    > .item {
+        width 100%
+        height func(44)
+        padding 0 func(15)
+        border-bottom: func(1) solid #f5f5f5
+        display flex
+        align-items center
+        justify-content space-between
+        > input {
+            flex 1
+            border 0
+            outline 0
+            background-color: transparent
+            text-align right
+            box-sizing border-box
+            color #BFBFBF
+            padding 0 func(15)
+            &::placeholder{
+                color #BFBFBF
+            }
+        }
+        > p {
+
+            span {
+                color #BFBFBF
+            }
+            i {
+                color #f00
+            }
+        }
+
+    }
+    > textarea {
+        width: 100%
+        box-sizing border-box
+        padding:0 func(15)
+        color #BFBFBF
+        height: func(108)
+        resize none
+        border 0
+        outline 0
+        &::placeholder {
+            color #BFBFBF
+        }
+    }
+    > .button {
+        width func(258)
+        height func(44)
+        background-color: #6CB127
+        color #fff
+        font-size func(16)
+        display flex
+        align-items center
+        justify-content center
+        margin func(74) auto 0 auto
+    }
+}
+</style>

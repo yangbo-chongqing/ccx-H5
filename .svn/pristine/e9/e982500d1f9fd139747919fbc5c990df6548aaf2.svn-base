@@ -1,0 +1,30 @@
+<template>
+    <div id="EstateDetails"></div>
+</template>
+
+<script>
+    export default {
+        name: "EstateDetails",
+        data() {
+            return {}
+        },
+        methods: {},
+        components: {},
+        created() {
+        },
+        mounted() {
+        },
+        filters: {},
+        computed: {},
+        watch: {}
+    }
+
+</script>
+
+<style scoped lang="stylus">
+#EstateDetails {
+    width 100%
+    min-height 100vh
+    background-color: pink
+}
+</style>

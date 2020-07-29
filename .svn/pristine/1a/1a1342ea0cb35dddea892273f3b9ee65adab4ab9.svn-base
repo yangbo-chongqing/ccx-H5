@@ -1,0 +1,552 @@
+const path = require('path');
+const debug = process.env.NODE_ENV !== 'production';
+const pageEntry = "./src/main.js";
+const pageTemplate = "./public/index.html";
+module.exports = {
+  lintOnSave: false,
+  runtimeCompiler: false,
+  productionSourceMap: false,
+  pluginOptions: {
+    'style-resources-loader': {
+      preProcessor: 'stylus',
+      patterns: [
+        path.resolve(__dirname, "./src/assets/css/public.styl")
+      ]
+    }
+  },
+  publicPath:"./",
+  outputDir:"ccxh5-data",
+  pages:{
+    index:{
+      entry:pageEntry,
+      template:pageTemplate,
+      filename:'index.html'
+    },
+    //个人中心
+    profile:{
+      entry:pageEntry,
+      template: pageTemplate,
+      filename: "profile.html"
+    },
+    //登录页
+    login:{
+      entry:pageEntry,
+      template: pageTemplate,
+      filename: "Login.html"
+    },
+    //注册
+    register:{
+      entry:pageEntry,
+      template: pageTemplate,
+      filename: "register.html"
+    },
+    //疫情监控
+    monitor:{
+      entry:pageEntry,
+      template: pageTemplate,
+      filename: "monitor.html"
+    },
+    //个人资料
+    personalData:{
+      entry:pageEntry,
+      template: pageTemplate,
+      filename: "personalData.html"
+    },
+    numbers:{
+      entry:pageEntry,
+      template: pageTemplate,
+      filename: "numbers.html"
+    },
+    server:{
+      entry:pageEntry,
+      template: pageTemplate,
+      filename: "server.html"
+    },
+    partyBuild:{
+      entry: pageEntry,
+      template:pageTemplate,
+      filename:"partyBuild.html"
+    },
+    scenic:{
+      entry: pageEntry,
+      template:pageTemplate,
+      filename:"scenic.html"
+
+    },
+    member:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "member.html"
+    },
+    onlineLearning:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "onlineLearning.html"
+    },
+    videoDetails:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "videoDetails.html"
+    },
+    wdjj:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "wdjj.html"
+    },
+    zxks:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "zxks.html"
+    },
+    policy:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "policy.html"
+    },
+    details:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "details.html"
+    },
+    dyfuwu:{//党员服务
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "dyfuwu.html"
+    },
+    Pay:{//党员缴费
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "Pay.html"
+    },
+    integral:{//我的积分
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "integral.html"
+    },
+    integralDetails:{//我的积分详情
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "integralDetails.html"
+    },
+    mytask:{//我的任务
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "mytask.html"
+    },
+    taskDetails:{//任务详情
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "taskDetails.html"
+    },
+    taskHandle:{//任务处理
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "taskHandle.html"
+    },
+    mailbox:{//书记信箱
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "mailbox.html"
+    },
+    release:{//书记信箱-发布
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "release.html"
+    },
+    poDetails:{//书记信箱-民意详情
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "poDetails.html"
+    },
+    manual:{//书记信箱-民意详情
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "manual.html"
+    },
+    myOrganization:{//我的组织
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "myOrganization.html"
+    },
+    notice:{//通知快讯
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "notice.html"
+    },
+    affairsOpen:{//政务公开
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "affairsOpen.html"
+    },
+    affairs:{//党务公开
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "affairs.html"
+    },
+    sentiment:{//村情介绍
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "sentiment.html"
+    },
+    instruction:{//家训家风
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "instruction.html"
+    },
+    villager:{//村民自治
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "villager.html"
+    },
+    fiveLong:{//五长制
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "fiveLong.html"
+    },
+    threeSessions:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "threeSessions.html"
+    },
+    attendees:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "attendees.html"
+    },
+    advanced:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "advanced.html"
+    },
+    checkInStaff:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "checkInStaff.html"
+    },
+    PartyBuildDynamics:{
+      entry: pageEntry,
+      template:pageTemplate,
+      filename:"PartyBuildDynamics.html"
+    },
+    PartyBuildPhoto:{
+      entry: pageEntry,
+      template:pageTemplate,
+      filename:"PartyBuildPhoto.html"
+    },
+    PartyPhotoDetails:{
+      entry: pageEntry,
+      template:pageTemplate,
+      filename:"PartyPhotoDetails.html"
+    },
+    PartyPhotoListDetails:{
+      entry: pageEntry,
+      template:pageTemplate,
+      filename:"PartyPhotoListDetails.html"
+    },
+    PartyAffairs:{
+      entry: pageEntry,
+      template:pageTemplate,
+      filename:"PartyAffairs.html"
+    },
+    Guide:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename:"Guide.html"
+    },
+    GuideClass :{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename:"GuideClass.html"
+    },
+    GuideDetails: {
+      entry: pageEntry,
+      template: pageTemplate,
+      filename:"GuideDetails.html"
+    },
+    OnLine: {
+      entry: pageEntry,
+      template: pageTemplate,
+      filename:"OnLine.html"
+    },
+    ProxyThing: {
+      entry: pageEntry,
+      template: pageTemplate,
+      filename:"ProxyThing.html"
+    },
+    Appeal: {
+      entry: pageEntry,
+      template: pageTemplate,
+      filename:"Appeal.html"
+    },
+    Declare:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename:"Declare.html"
+    },
+    ResultSearch:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename:"ResultSearch.html"
+    },
+    ResultDetails: {
+      entry:pageEntry,
+      template: pageTemplate,
+      filename: "ResultDetails.html"
+    },
+    SearchConvenience: {
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "SearchConvenience.html"
+    },
+    Merge:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "Merge.html"
+    },
+    volunteer:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "volunteer.html"
+    },
+    BeVolunteer:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "BeVolunteer.html"
+    },
+    detailsVer:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "detailsVer.html"
+    },
+    OrgConstruction:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "OrgConstruction.html"
+    },
+    election:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "election.html"
+    },
+    electionDetails:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "electionDetails.html"
+    },
+    secretary:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "secretary.html"
+    },
+    scoring:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "scoring.html"
+    },
+    pollresearch:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "pollresearch.html"
+    },
+    pollDetails:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "pollDetails.html"
+    },
+    development:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "development.html"
+    },
+    relational:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "relational.html"
+    },
+    orgStructure:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "orgStructure.html"
+    },
+    outregistration:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "outregistration.html"
+    },
+    orgDetails:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "orgDetails.html"
+    },
+    poverty:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "poverty.html"
+    },
+    dynamicDetails:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "dynamicDetails.html"
+    },
+    projectDetails:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "projectDetails.html"
+    },
+    povertyAccount:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "povertyAccount.html"
+    },
+    households:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "households.html"
+    },
+    family:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "family.html"
+    },
+    familyMember:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "familyMember.html"
+    },
+    processList:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "processList.html"
+    },
+    archives:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "archives.html"
+    },
+    processDetails:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "processDetails.html"
+    },
+    poveryDevelopment:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "poveryDevelopment.html"
+    },
+    resident:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "resident.html"
+    },
+    statistics:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "statistics.html"
+    },
+    BeautifulCountry:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "BeautifulCountry.html"
+    },
+    beautifulDetails:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "beautifulDetails.html"
+    },
+    map:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "map.html"
+    },
+    vr:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "vr.html"
+    },
+    Police:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "Police.html"
+    },
+    Law:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "Law.html"
+    },
+    Lawdetails:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "Lawdetails.html"
+    },
+    Lawconsultation:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "Lawconsultation.html"
+    },
+    Society:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "Society.html"
+    },
+    SocietyDet:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "SocietyDet.html"
+    },
+    SocietySign:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "SocietySign.html"
+    },
+    villageIntroduction:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "villageIntroduction.html"
+    },
+    villageDetails:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "villageDetails.html"
+    },
+    Safe:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename:"Safe.html"
+    },
+    Selfprotection:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "Selfprotection.html"
+    },
+    NewDetails:{
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "NewsDetails.html"
+    },
+    Disaster:{
+      entry:pageEntry,
+      template: pageTemplate,
+      filename:"Disaster.html"
+    },
+    PoliceSentiment: {
+      entry: pageEntry,
+      template: pageTemplate,
+      filename: "PoliceSentiment.html"
+    },
+    publicity: {
+      entry: pageEntry,
+      template: pageTemplate,
+      filename:"publicity.html"
+    },
+    morePhone: {
+      entry: pageEntry,
+      template: pageTemplate,
+      filename:"morePhone.html"
+    },
+    documentDetails:{
+      entry:pageEntry,
+      template:pageTemplate,
+      filename:"documentDetails.html"
+    }
+  }
+};

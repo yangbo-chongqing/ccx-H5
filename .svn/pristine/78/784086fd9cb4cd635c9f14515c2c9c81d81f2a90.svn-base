@@ -1,0 +1,254 @@
+<template>
+    <div id="election">
+        <MyHeader :title="'换届选举'"/>
+        <div id="Options">
+            <div class="rightTitle">
+                <ul>
+                    <li :class="{active : flag === 0 }" @click="toggleFlag(0)">进行中</li>
+                    <li :class="{active : flag === 1  }" @click="toggleFlag(1)">待进行</li>
+                    <li :class="{active : flag === 2  }" @click="toggleFlag(2)">已结束</li>
+                </ul>
+            </div>
+        </div>
+        <div v-if="flag===0">
+            <div class="list-main" v-for="(item , index) in list" :key="index" @click="goElection(item)">
+                <img :src="item.showImg" />
+                <div class="list-main-right">
+                    <p>{{item.title}}</p>
+                    <div style="color:#d33333"><i class="iconfont" style="color:#d33333">&#xe7de;</i>进行中</div>
+                    <div class="other">
+                        <div><i class="iconfont">&#xe671;</i>{{item.create_date | formatTime}}</div>  
+                        <div><i class="iconfont">&#xe713;</i>{{item.areaName}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="flag===1">
+            <div class="list-main" v-for="(item , index) in list" :key="index" @click="goElections(item)">
+                <img :src="item.showImg" />
+                <div class="list-main-right">
+                    <p>{{item.title}}</p>
+                    <div><i class="iconfont">&#xe63b;</i>待进行</div>
+                    <div class="other">
+                        <div><i class="iconfont">&#xe671;</i>{{item.create_date | formatTime}}</div>  
+                        <div><i class="iconfont">&#xe713;</i>{{item.areaName}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="flag===2">
+            <div class="list-main" v-for="(item , index) in list" :key="index" @click="goElections(item)">
+                <img :src="item.showImg" />
+                <div class="list-main-right">
+                    <p>{{item.title}}</p>
+                    <div style="color:#BFBFBF"><i class="iconfont" style="color:#BFBFBF">&#xe641;</i>已结束</div>
+                    <div class="other">
+                        <div><i class="iconfont">&#xe671;</i>{{item.create_date | formatTime}}</div>  
+                        <div><i class="iconfont">&#xe713;</i>{{item.areaName}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    import MyHeader from "../../components/public/MyHeader";
+    import { getElec } from "../../apis";
+    export default {
+        name: "election",
+        data() {
+            return {
+                flag : 0,
+                list:[]
+            }
+        },
+        methods: {
+            getElec(type){
+                getElec({
+                    url:"/Voting/getVotingListApp?news_type=46",
+                    data:type
+                }).then(msg => {
+                    if(~~msg.code === 1){
+                        msg = msg.data.list;
+                        msg.forEach(item => {
+                            if(item.contentPic && item.contentPic !== "null"){
+                                item.showImg = item.contentPic.split(",")[0];
+                            }else {
+                                item.showImg = require("../../assets/img/noImg.png");
+                            }
+                        })
+                        this.list = msg
+                    }else {
+                        //获取失败
+                        this.GToast({message:"获取失败"});
+                    }
+                })
+            },
+            toggleFlag(flag){
+                if(flag==0){
+                    let type = {getNow: true}
+                    this.getElec(type)
+                }else if(flag==1){
+                    let type = {getNew: true}
+                    this.getElec(type)
+                }else{
+                    let type = {getOld: true}
+                    this.getElec(type)
+                }
+                this.flag = flag;
+            },
+            goElection(item){
+                this.$router.push({path:'/electionDetails.html',query:{ id:item.news_id,isVote:1}});
+            },
+            goElections(item){
+                this.$router.push({path:'/electionWas.html',query:{ id:item.news_id,isVote:2}})
+            }
+        },
+        filters:{
+            formatTime(date){
+                date = new Date(date);
+                const year = date.getFullYear();
+                const month = date.getMonth() + 1;
+                const day = date.getDate() ;
+                return `${year}年${month}月${day}日`;
+            }
+        },
+        components: {
+            MyHeader,
+        },
+        created() {
+            this.getElec({ getNow: true })
+        },
+    }
+</script>
+
+<style scoped lang="stylus">
+#election {
+    width 100%
+    min-height 100vh
+    box-sizing  border-box;
+    padding-top 2rem;
+    > img {
+        width:100%;
+    }
+    .list{
+        background-color: #fff;
+    }
+    .list-title>img{
+        width: 6.8rem;
+        height: 1.3rem;
+        margin: 1rem 0 0 1.2rem;
+    }
+    .list-main{
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        padding:0.6rem;
+        border-bottom:.1rem solid #f5f5f5;
+        >img{
+            width:4.4rem;
+            height:3.28rem;
+            display: block;
+            margin-right: 0.48rem;
+        }
+    }
+    .list-main-right{
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        >p{
+            width: 100%;
+            font-family: PingFang SC;
+            line-height: 1.2rem;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            color:rgba(34, 34, 34, 1);
+        }
+        >div:nth-child(2){
+            font-size: 0.5rem;
+            color: #999;
+        }
+        .other{
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            font-size: 1rem;
+            line-height: 1rem;
+            >div{
+                color: #999;
+            }
+            >div:first-child{
+                margin-right: 0.48rem;
+            }
+        }
+        .iconfont{
+            color: #7ec26f;
+            font-size: 0.5rem;
+            vertical-align: middle;
+            margin-right: 0.32rem;
+        }
+    }
+    .list-other {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        font-size: 1rem;
+        line-height: 1.1rem;
+        margin: 1rem 1.1rem;
+        >div{
+            color: #999;
+        }
+        .iconfont{
+            color: #7ec26f;
+            font-size: 1.1rem;
+            vertical-align: sub;
+        }
+    }
+}
+#Options
+        width: 100%
+        height:54px
+        display flex
+        align-items center
+        box-sizing border-box
+        padding: 0 func(10)
+        padding-bottom: func(5)
+        border-bottom: func(1) solid #e3e3e3
+        .rightTitle
+            width 100%;
+            height func(44)
+            display flex
+            justify-content flex-end
+            ul
+                width :100%
+                height:func(44)
+                display flex
+                align-items center
+                justify-content: space-around
+                li
+                    padding 0 func(10)
+                    font-size func(14)
+                    height func(33)
+                    display flex
+                    align-items center
+                    justify-content center
+                    box-sizing border-box
+                    color #8A8A8A
+                    position: relative
+                    &::after
+                        position: absolute
+                        content ""
+                        width: 50%
+                        height:func(2)
+                        background-color: #4bb344
+                        bottom 10%
+                        opacity 0
+                        transition all .2s;
+                    &.active
+                        color #4bb344;
+                        &::after
+                            opacity 1
+</style>

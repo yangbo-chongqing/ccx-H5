@@ -1,0 +1,203 @@
+<template>
+  <div class="examination">
+    <MyHeader :title="'开始题目'"></MyHeader>
+    <!-- 题目 -->
+    <div
+      class="subject"
+    >{{indexNum + 1}}、{{list[indexNum].quesTitle}}（单选题：{{list[indexNum].quesScore}}分）</div>
+    <!-- 答案选项 -->
+    <div class="optionBox">
+      <RadioGroup v-model="radio">
+        <div class="option" v-for="(item, index) in list[indexNum].optionList" :key="index">
+          <Radio :name="item.key" shape="square" checked-color="#6CB127">{{item.key}}.{{item.val}}</Radio>
+        </div>
+      </RadioGroup>
+    </div>
+    <!-- 下一题 -->
+    <div class="next" @click="next()">{{isEnd ? '提交' : '下一题'}}</div>
+  </div>
+</template>
+<script>
+import MyHeader from "@/components/public/MyHeader";
+import { Dialog, RadioGroup, Radio, Toast } from "vant";
+import { getMemberTest, memberSubmit } from "@/apis";
+export default {
+  name: "examination",
+  components: {
+    MyHeader,
+    RadioGroup,
+    Radio,
+    Dialog,
+    Toast
+  },
+  data() {
+    return {
+      examId: this.$route.query.id,
+      radio: "", //选择的答案
+      total: 0, //总题数
+      list: [
+        {
+          quesTitle: "", //题目
+          quesScore: 0, //分数
+          quesAnswer: "", //正确答案
+          userQuesAnswer: "" //选择的正确答案
+        }
+      ], //考题
+      indexNum: 0, //当前第几题的下标
+      isEnd: false //是否最后一题
+    };
+  },
+  methods: {
+    //获取考试题目
+    getTest() {
+      getMemberTest({
+        url: "/fun/ques/listApp",
+        data: {
+          examId: this.examId
+        }
+      }).then(res => {
+        if (res.code == 200) {
+          this.list = res.data.list;
+          this.total = res.data.total;
+          if (this.list.length === 1) {
+            //如果总题数为1，直接就是最后一题
+            this.isEnd = true;
+          }
+        } else {
+          this.GToast({ message: "获取失败" });
+        }
+      });
+    },
+    //下一题
+    next() {
+      if (!this.radio) {
+        this.GToast({ message: "请选择答案" });
+      } else {
+        Toast.loading({
+          message: "加载中...",
+          forbidClick: true
+        });
+        //将选择的答案存入数组中
+        let list = this.list;
+        list[this.indexNum].userQuesAnswer = this.radio;
+        if (this.isEnd) {
+          //是最后一题
+          this.submit();
+        } else {
+          if (this.indexNum + 2 == this.list.length) {
+            //下一题是最后一题
+            this.isEnd = true;
+          }
+          //清除当前选项
+          this.radio = "";
+          //下一题
+          this.indexNum = this.indexNum + 1;
+        }
+        Toast.clear();
+      }
+    },
+    //提交答案
+    submit() {
+      //计算总分
+      let totalScore = 0; //总分
+      let totalScoreArr = this.list.map(obj => {
+        if (obj.quesAnswer == obj.userQuesAnswer) {
+          return obj.quesScore;
+        } else {
+          return 0;
+        }
+      });
+      for (let i = 0; i < totalScoreArr.length; i++) {
+        totalScore += Number(totalScoreArr[i]);
+      }
+      //问题id集合
+      let quesIds = this.list.map(obj => {
+        return obj.quesId;
+      });
+      //答案集合
+      let userQuesAnswerList = this.list.map(obj => {
+        return obj.userQuesAnswer;
+      });
+      memberSubmit({
+        url: "/fun/quesUser/saveList",
+        data: {
+          examId: this.examId,
+          quesIds: quesIds.join(","),
+          userAnswers: userQuesAnswerList.join(",")
+        }
+      }).then(res => {
+        if (res.code == 200) {
+          Dialog.confirm({
+            title: "提交成功",
+            message:
+              "当前考试已结束，当前得分为" +
+              totalScore +
+              "分，提交之后将获得4个积分，重新考试积分将不会改变",
+            confirmButtonText: "确定",
+            confirmButtonColor: "#6CB127",
+            cancelButtonText: "重考",
+            cancelButtonColor: "#8A8A8A"
+          })
+            .then(() => {
+              // 确定
+              this.$router.replace("/zxks.html");
+            })
+            .catch(() => {
+              // 重考
+              Dialog.close();
+              this.radio = "";
+              this.indexNum = 0;
+              if (this.list.length === 1) {
+                //如果总题数为1，直接就是最后一题
+                this.isEnd = true;
+              } else {
+                this.isEnd = false;
+              }
+            });
+        } else if (res.code == 400) {
+          this.GToast({ message: res.msg });
+        } else {
+          this.GToast({ message: "提交失败" });
+        }
+      });
+    }
+  },
+  created() {
+    this.getTest();
+  }
+};
+</script>
+<style lang="stylus" scoped>
+.examination {
+  padding-top: func(44);
+
+  .subject {
+    width: 100%;
+    padding: func(15);
+    color: #444444;
+    font-size: func(16);
+    box-sizing: border-box;
+  }
+
+  .optionBox {
+    width: 100%;
+    padding: func(15);
+
+    .option {
+      padding: func(8) 0;
+    }
+  }
+
+  .next {
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    line-height: func(43);
+    text-align: center;
+    font-size: func(16);
+    color: #6CB127;
+    box-shadow: 0px -1px 4px rgba(0, 0, 0, 0.1);
+  }
+}
+</style>

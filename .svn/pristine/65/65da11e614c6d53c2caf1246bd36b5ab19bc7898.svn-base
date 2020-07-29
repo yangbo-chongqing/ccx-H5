@@ -1,0 +1,94 @@
+<template>
+    <div class="affairs">
+        <MyHeader :title="title"/>
+        <Lines />
+        <NewsList v-for="(item , index) in list" :key="index" :news="item"/>
+        <img src="../../assets/img/noData.png" v-show="list.length === 0">
+    </div>
+</template>
+<script>
+    import MyHeader from "@/components/public/MyHeader";
+    import Lines from "@/components/public/Lines";
+    import NewsList from "@/components/public/NewsList";
+    import imageList from "@/components/public/imageList";
+    import textList from "@/components/public/textList";
+    import {getNewsClass} from "../../apis";
+    export default {
+        name: "affairs",
+        components: {
+            MyHeader,
+            Lines,
+            NewsList,
+            imageList,
+            textList
+        },
+        data(){
+            return {
+                list:[],
+                title:""
+            }
+        },
+        methods:{
+            getList(){
+                const title = this.title;
+                let news_type = 19;
+                switch (title) {
+                    case "党务公开":
+                        news_type = 19;
+                        break;
+                    case "村务公开":
+                        news_type = 32;
+                        break;
+                    case "政策宣传":
+                        news_type = 33;
+                        break;
+                    default:
+                        news_type = 44; //村情介绍
+                        break
+                }
+                getNewsClass({
+                    data:{
+                        news_type
+                    },
+                    currentObject: this
+                }).then( msg => {
+                    if(~~msg.status === 200 && ~~msg.code === 1){
+                        msg = msg.data.list
+                        msg.forEach(item => {
+                            if(item.contentPic && item.contentPic !== "null"){
+                                item.showImg = item.contentPic.split(",")[0];
+                                item.typeName = "政务";
+                            }else {
+                                item.typeName = "政务";
+                                item.showImg = require("../../assets/img/noImg.png");
+                            }
+                            item.isNotice = true;
+                        })
+                        this.list = msg
+                    }else {
+                        this.GToast({message:"获取失败"})
+                    }
+                }).catch(err =>{
+                    this.GToast({message:"网络错误"})
+                })
+            }
+        },
+        created() {
+            this.title = this.decodeBase64(this.$route.query).title;
+        },
+        mounted() {
+            this.getList();
+        }
+
+
+    }
+</script>
+<style lang="stylus" scoped>
+    .affairs
+        width 100%
+        padding-top func(44)
+        box-sizing border-box
+        > img {
+            max-width: 100%;
+        }
+</style>

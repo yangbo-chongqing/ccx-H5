@@ -1,0 +1,110 @@
+<template>
+    <div id="Tools">
+        <div v-for="(item ,index) in toolsList" :key="index" @click="goPage(item.pageRouter)">
+            <img :src="item.img" />
+            <p>{{ item.title}}</p>
+        </div>
+    </div>
+</template>
+
+<script>
+    import {isLogin } from "../../apis";
+    import { Dialog } from "vant"
+    export default {
+        name: "Tools",
+        props:{
+            toolsList:{
+                type:Array,
+                required:true
+            }
+        },
+        methods: {
+            async goPage(pageRouter){
+
+
+
+                //获取后台结果
+                let result = await isLogin();
+
+                console.log(result);
+                //获取前端结果
+                let userInfo = this.$store.state.userInfo;
+                console.log(userInfo);
+                /*************没有登录******************/
+                //先判断本地提高效率
+                if(!userInfo){
+                    Dialog.confirm({
+                        title:"温馨提示",
+                        message:"您还没有登录，是否前往登录页面进行登录？"
+                    }).then(msg => {
+                        this.$store.dispatch(modifyUserInfo);
+                        this.$store.dispatch(modifyArea);
+                        this.$store.dispatch(modifyShowArea);
+                        this.$router.push("/login.html")
+                    }).catch(err => {})
+                    return null
+                }
+
+                /***************被后台提踢出************/
+                if(~~result.code === 0 && ~~result.status === 400 && userInfo) {
+                    this.$store.dispatch(modifyUserInfo);
+                    this.$store.dispatch(modifyArea);
+                    this.$store.dispatch(modifyShowArea);
+                    Dialog.alert({
+                        title:"温馨提示",
+                        message:"账号已在另一台设备登录，您已被强制下线！"
+                    }).then(() => {
+                        this.$router.push("/login.html");
+                    })
+                    return null
+                }
+
+                /**************判断后台结果 没有登录*************/
+                if(~~result.code === 0 && ~~result.status === 400){
+                    Dialog.confirm({
+                        title:"温馨提示",
+                        message:"您还没有登录，是否前往登录页面进行登录？"
+                    }).then(() => {this.$router.push("/login.html")}).catch(() => {})
+                    return null
+                }
+
+                /***************后台登陆了*****************/
+                if(~~result.code ===0 && ~~result.status === 200){
+                    this.switchPage({pageRouter})
+                }
+            }
+        },
+        components: {},
+        created() {
+        },
+    }
+</script>
+
+<style scoped lang="stylus">
+    #Tools
+        width 100%
+        height func(200)
+        display flex
+        box-sizing border-box
+        flex-wrap wrap
+        div
+            width 25%
+            height func(100)
+            display flex
+            flex-direction column
+            align-items center
+            justify-content  center
+            box-sizing border-box
+            border-bottom func(1) solid #E6E6E6
+            border-right func(1) solid #E6E6E6
+            &:nth-of-type(4n)
+                border-right: 0
+            &:nth-of-type(n + 5)
+                border-bottom 0
+            img
+                width func(44)
+                height func(44)
+                margin-bottom func(10)
+            p
+                margin:0
+</style>
