@@ -20,7 +20,7 @@
     "photo-sphere-viewer": "^3.5.1",
     "qs": "^6.9.1",
     "serve": "^11.3.0",
-    "three": "^0.114.0",
+    "three": "^0.125.0",
     "vant": "^2.5.3",
     "vconsole": "^3.3.4",
     "video.js": "^7.8.2",
